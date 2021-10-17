@@ -1,0 +1,3 @@
+[console_scripts]
+auto_split_commits = mypkg.script:main
+
