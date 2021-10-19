@@ -2,11 +2,6 @@ import re
 from argparse import ArgumentParser
 import sys
 
-def main():
-    added_chunks, removed_chunks = parse_diff(sys.stdin.readlines())
-    print("added_chunks: {0}".format(added_chunks))
-    print("removed_chunks: {0}".format(removed_chunks))
-
 def parse_diff(lines):
     lines = lines.split('\n')
     added_chunks, removed_chunks = [], []
@@ -61,5 +56,3 @@ def parse_diff(lines):
     return (added_chunks, removed_chunks)
 
 
-if __name__ == '__main__':
-    main()
