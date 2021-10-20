@@ -23,7 +23,6 @@ def main():
             patch_content = context.make_remove_patch_content(rc)
             patch = make_patch.make_full_patch(diff.a_path, patch_content)
             print(patch)
-            gitpython.auto_commit(repo, patch, diff.a_path, rc.start_id, rc.end_id)
             operate_git.auto_commit(repo, patch, diff.a_path, rc.start_id, rc.end_id)
 
 if __name__ == '__main__':
