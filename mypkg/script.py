@@ -15,6 +15,8 @@ def main():
     # for patch in patches:
     #     print(patch)
     # gitpython.auto_commit(repo, patches)
+    repo = operate_git.get_repo(path)
+    diffs = operate_git.get_diffs(repo)
     
     for diff in diffs:
         context = Context()
