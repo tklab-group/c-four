@@ -8,15 +8,6 @@ def get_repo(path):
 def get_diffs(repo):
     return repo.head.commit.diff(None, create_patch=True).iter_change_type('M')
 
-def make_patch(file, diff):
-    patch = textwrap.dedent("""\
-    diff --git a/{0} b/{0}
-    --- a/{0}
-    +++ b/{0}
-    """.format(file)) + diff
-
-    return patch
-
 def auto_commit(repo, patch, path, start_id, end_id):
     with tempfile.NamedTemporaryFile(mode='w+') as tf:
         tf.write(patch)
