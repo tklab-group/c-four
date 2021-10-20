@@ -1,5 +1,6 @@
 from mypkg import gitpython
 from mypkg import parse_diff
+from mypkg.parse_diff import Context
 import inspect
 import os
 
@@ -7,15 +8,23 @@ def main():
     path = os.getcwd()
     repo = gitpython.get_repo(path)
     diffs = gitpython.get_diffs(repo)
-    patches = [ gitpython.make_patch(d.a_path, d.diff.decode()) for d in diffs ]
-    gitpython.auto_commit(repo, patches)
+    # patches = [ gitpython.make_patch(d.a_path, d.diff.decode()) for d in diffs ]
+    # for patch in patches:
+    #     print(patch)
+    # gitpython.auto_commit(repo, patches)
+    
+    for diff in diffs:
+        context = Context()
+        context.parse_diff(diff.diff.decode())
 
-    # for diff in diffs[:1]:
-    #     print(diff.a_path)
-    #     print(diff.diff.decode())
-    #     added_chunks, removed_chunks = parse_diff.parse_diff(diff.diff.decode())
-    #     print("added_chunks: {0}".format(added_chunks))
-    #     print("removed_chunks: {0}".format(removed_chunks))
+        for ac in context.add_chunks:
+            patch_code = context.make_add_patch(ac)
+            patch = gitpython.make_patch(diff.a_path, patch_code)
+            print(patch)
+            gitpython.auto_commit(repo, patch)
+            
+        # for rc in context.remove_chunks:
+        #     print(context.make_remove_patch(rc))
         
         # patch = gitpython.make_patch(diff.a_path, diff.diff.decode())
         # print(diff.a_path)

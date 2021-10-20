@@ -18,10 +18,9 @@ def make_patch(file, diff):
 
     return patch
 
-def auto_commit(repo, patches):
-    for index, patch in enumerate(patches):
-        with tempfile.NamedTemporaryFile(mode='w+') as tf:
-            tf.write(patch)
-            tf.seek(0)
-            repo.git.apply(['--cached', tf.name])
-            repo.git.commit('-m', 'commit: {0}'.format(index))
+def auto_commit(repo, patch):
+    with tempfile.NamedTemporaryFile(mode='w+') as tf:
+        tf.write(patch)
+        tf.seek(0)
+        repo.git.apply(['--cached', tf.name])
+        repo.git.commit('-m', 'commit: {0}'.format(tf.name))
