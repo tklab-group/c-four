@@ -34,6 +34,8 @@ def main():
         for rc in context.remove_chunks:
             patch_code = context.make_remove_patch(rc)
             patch = gitpython.make_patch(diff.a_path, patch_code)
+            patch_content = context.make_remove_patch_content(rc)
+            patch = make_patch.make_full_patch(diff.a_path, patch_content)
             print(patch)
             gitpython.auto_commit(repo, patch, diff.a_path, rc.start_id, rc.end_id)
 
