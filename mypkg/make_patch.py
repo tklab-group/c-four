@@ -96,7 +96,6 @@ class Context:
         if bool(remove_line_ids):
             split_remove_chunk(remove_line_ids, self.remove_chunks)
     
-    def make_add_patch(self, chunk):
     def make_add_patch_content(self, chunk):
         start_id, end_id = chunk.start_id, chunk.end_id
         append_flag = False
