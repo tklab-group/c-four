@@ -158,6 +158,10 @@ class Context:
                 b_line_num += 1
             elif start_id <= code_info.line_id <= end_id:
                 patch_code += '-' + code_info.code + '\n'
+            elif code_info.line_id == end_id + 1:
+                patch_code += ' ' + code_info.code + '\n'
+                a_line_num += 1
+                b_line_num += 1
                 
         removed_count = end_id - start_id + 1
         
