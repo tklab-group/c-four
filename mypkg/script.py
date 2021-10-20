@@ -23,8 +23,6 @@ def main():
             print(patch)
             gitpython.auto_commit(repo, patch, diff.a_path, ac.start_id, ac.end_id)
 
-        for ac in context.remove_chunks:
-            patch_code = context.make_remove_patch(ac)
         for rc in context.remove_chunks:
             patch_code = context.make_remove_patch(rc)
             patch = gitpython.make_patch(diff.a_path, patch_code)
