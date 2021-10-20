@@ -172,8 +172,6 @@ class Context:
                 patch_code += ' ' + code_info.code + '\n'
                 a_line_num += 1
                 b_line_num += 1
-                
-        removed_count = end_id - start_id + 1
         
         self.code_infos = [c for c in self.code_infos if not start_id <= c.line_id <= end_id]
 
