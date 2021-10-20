@@ -19,6 +19,47 @@ class AddChunk(Chunk):
         super().__init__(start_id, end_id)
         self.codes = codes
         
+
+def make_full_patch(file, diff):
+    patch = textwrap.dedent("""\
+    diff --git a/{0} b/{0}
+    --- a/{0}
+    +++ b/{0}
+    """.format(file)) + diff
+
+    return patch
+
+def split_add_chunk(infos, chunks):
+    first_info = infos.pop(0)
+    start_id, codes = first_info.line_id, [first_info.code]
+    prev_id = end_id = start_id
+    infos.append(CodeInfo(-1, ''))
+    appeared_line = 0
+    
+    for info in infos:
+        id = info.line_id
+        if id == prev_id + 1:
+            end_id = id
+            codes.append(info.code)
+        else:
+            chunks.append(AddChunk(start_id - appeared_line, end_id - appeared_line, codes))
+            appeared_line += end_id - start_id + 1
+            start_id = end_id = id
+            codes = [info.code]
+        prev_id = id
+
+def split_remove_chunk(ids, chunks):
+    start_id = ids.pop(0)
+    prev_id = end_id = start_id
+    ids.append(-1)
+    for id in ids:
+        if id == prev_id + 1:
+            end_id = id
+        else:
+            chunks.append(Chunk(start_id, end_id))
+            start_id = end_id = id
+        prev_id = id
+
 class Context:
     def __init__(self):
         self.code_infos = []
