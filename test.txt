@@ -14,7 +14,6 @@
 13.Death
 14.Temperance
 15.Hello
----
 16.Tower
 17.Star
 ---
