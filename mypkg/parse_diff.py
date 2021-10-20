@@ -117,6 +117,7 @@ class Context:
 
         for index, code_info in enumerate(self.code_infos):
             if code_info.line_id > start_id:
+            if code_info.line_id >= start_id:
                 self.code_infos[index].line_id += added_count
                 
         for code in chunk.codes:
