@@ -23,5 +23,4 @@ def auto_commit(repo, patch, path, start_id, end_id):
         tf.write(patch)
         tf.seek(0)
         repo.git.apply(['--cached', tf.name])
-        repo.git.commit('-m', 'commit: {0}'.format(tf.name))
         repo.git.commit('-m', 'commit: {0}({1},{2})'.format(path, start_id, end_id))
