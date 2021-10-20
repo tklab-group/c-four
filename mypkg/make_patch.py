@@ -183,6 +183,7 @@ class Context:
         return patch_code
     
     def make_remove_patch(self, chunk):
+    def make_remove_patch_content(self, chunk):
         start_id, end_id = chunk.start_id, chunk.end_id
         patch_code = ""
         removed_count = end_id - start_id + 1
