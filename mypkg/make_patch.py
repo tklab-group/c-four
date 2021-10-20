@@ -146,16 +146,6 @@ class Context:
             self.code_infos.insert(insert_index, CodeInfo(line_id, code))
             line_id += 1
             insert_index += 1
-    
-        for index, chunk in enumerate(self.add_chunks):
-            if chunk.start_id >= start_id:
-                self.add_chunks[index].start_id += added_count
-                self.add_chunks[index].end_id += added_count
-    
-        for index, chunk in enumerate(self.remove_chunks):
-            if chunk.start_id >= start_id:
-                self.remove_chunks[index].start_id += added_count
-                self.remove_chunks[index].end_id += added_count
             
         increment_line_id(added_count, start_id, self.add_chunks)
         increment_line_id(added_count, start_id, self.remove_chunks)
