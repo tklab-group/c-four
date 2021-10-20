@@ -174,6 +174,8 @@ class Context:
         a_start_id = b_start_id = start_id
         a_line_num = removed_count
         b_line_num = 0
+        a_line_num, b_line_num = removed_count, 0
+        patch_code = ""
         
         for code_info in self.code_infos:
             if code_info.line_id == start_id - 1:
