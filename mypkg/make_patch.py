@@ -59,6 +59,18 @@ def split_remove_chunk(ids, chunks):
             start_id = end_id = id
         prev_id = id
 
+def increment_line_id(count, start_id, chunks):
+    for index, chunk in enumerate(chunks):
+        if chunk.start_id >= start_id:
+            chunks[index].start_id += count
+            chunks[index].end_id += count
+
+def decrement_line_id(count, end_id, chunks):
+    for index, chunk in enumerate(chunks):
+        if chunk.start_id > end_id:
+            chunks[index].start_id -= count
+            chunks[index].end_id -= count
+
 class Context:
     def __init__(self):
         self.code_infos = []
