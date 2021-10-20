@@ -149,7 +149,6 @@ class Context:
         patch_code = '@@ -{0},{1} +{2},{3} @@\n'.format(a_start_id, a_line_num, b_start_id, b_line_num) + patch_code
         return patch_code
     
-    def make_remove_patch(self, chunk):
     def make_remove_patch_content(self, chunk):
         start_id, end_id = chunk.start_id, chunk.end_id
         patch_code = ""
