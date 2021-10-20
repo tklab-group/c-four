@@ -190,9 +190,3 @@ class Context:
 
         patch_code = '@@ -{0},{1} +{2},{3} @@\n'.format(a_start_id, a_line_num, b_start_id, b_line_num) + patch_code
         return patch_code
-        
-    def print_attr(self):
-        print(self.add_chunks)
-        print(self.remove_chunks)
-        for b in self.code_infos:
-            print('{0}: {1}'.format(b.line_id, b.code))
