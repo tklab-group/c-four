@@ -157,8 +157,6 @@ class Context:
         start_id, end_id = chunk.start_id, chunk.end_id
         removed_count = end_id - start_id + 1
         a_start_id = b_start_id = start_id
-        a_line_num = removed_count
-        b_line_num = 0
         a_line_num, b_line_num = removed_count, 0
         patch_code = ""
         
