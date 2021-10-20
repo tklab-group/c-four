@@ -179,15 +179,6 @@ class Context:
             if code_info.line_id > end_id:
                 self.code_infos[index].line_id -= removed_count
 
-        for index, chunk in enumerate(self.add_chunks):
-            if chunk.start_id > end_id:
-                self.add_chunks[index].start_id -= removed_count
-                self.add_chunks[index].end_id -= removed_count
-
-        for index, chunk in enumerate(self.remove_chunks):
-            if chunk.start_id > end_id:
-                self.remove_chunks[index].start_id -= removed_count
-                self.remove_chunks[index].end_id -= removed_count
         decrement_line_id(removed_count, end_id, self.add_chunks)
         decrement_line_id(removed_count, end_id, self.remove_chunks)
 
