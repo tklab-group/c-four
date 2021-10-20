@@ -151,6 +151,7 @@ class Context:
         
         for code_info in self.code_infos:
             if code_info.line_id == start_id - 1 or code_info.line_id == end_id + 1:
+            if code_info.line_id == start_id - 1:
                 patch_code += ' ' + code_info.code + '\n'
             elif start_id <= code_info.line_id <= end_id:
                 patch_code += '-' + code_info.code + '\n'
