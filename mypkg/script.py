@@ -30,5 +30,11 @@ def main():
         # print(diff.a_path)
         # print(patch)
 
+        for ac in context.remove_chunks:
+            patch_code = context.make_remove_patch(ac)
+            patch = gitpython.make_patch(diff.a_path, patch_code)
+            print(patch)
+            gitpython.auto_commit(repo, patch)
+
 if __name__ == '__main__':
     main()
