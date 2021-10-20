@@ -142,7 +142,6 @@ class Context:
     def make_remove_patch(self, chunk):
         start_id, end_id = chunk.start_id, chunk.end_id
         patch_code = ""
-        print((start_id, end_id))
         removed_count = end_id - start_id + 1
         a_start_id = b_start_id = start_id
         a_line_num = removed_count
