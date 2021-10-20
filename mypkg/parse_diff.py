@@ -81,8 +81,6 @@ class Context:
                     start_id = end_id = id
                 prev_id = id
         
-        split_add_chunk(add_line_infos, self.add_chunks)
-        split_remove_chunk(remove_line_ids, self.remove_chunks)
         if bool(add_line_infos):
             split_add_chunk(add_line_infos, self.add_chunks)
         if bool(remove_line_ids):
