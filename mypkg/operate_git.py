@@ -1,6 +1,5 @@
 import git
 from git import Repo
-import textwrap
 import tempfile
 
 def get_repo(path):
