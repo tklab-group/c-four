@@ -207,6 +207,8 @@ class Context:
             if chunk.start_id > end_id:
                 self.remove_chunks[index].start_id -= removed_count
                 self.remove_chunks[index].end_id -= removed_count
+        decrement_line_id(removed_count, end_id, self.add_chunks)
+        decrement_line_id(removed_count, end_id, self.remove_chunks)
 
         patch_code = '@@ -{0},{1} +{2},{3} @@\n'.format(a_start_id, a_line_num, b_start_id, b_line_num) + patch_code
         return patch_code
