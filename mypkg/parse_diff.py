@@ -144,6 +144,10 @@ class Context:
         print((start_id, end_id))
         a_start_id = a_end_id = 0
         b_start_id = b_end_id = 0
+        removed_count = end_id - start_id + 1
+        a_start_id = b_start_id = start_id
+        a_line_num = removed_count
+        b_line_num = 0
         
         for code_info in self.code_infos:
             if code_info.line_id == start_id - 1 or code_info.line_id == end_id + 1:
