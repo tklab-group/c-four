@@ -110,6 +110,9 @@ class Context:
     
     def make_add_patch_content(self, chunk):
         start_id, end_id = chunk.start_id, chunk.end_id
+        added_count = end_id - start_id + 1
+        a_start_id = b_start_id = start_id
+        a_line_num, b_line_num = 0, added_count
         append_flag = False
         insert_index = 0
         patch_code = ""
