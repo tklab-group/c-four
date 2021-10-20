@@ -31,6 +31,7 @@ def main():
             patch = gitpython.make_patch(diff.a_path, patch_code)
             print(patch)
             gitpython.auto_commit(repo, patch)
+            gitpython.auto_commit(repo, patch, diff.a_path, rc.start_id, rc.end_id)
 
 if __name__ == '__main__':
     main()
