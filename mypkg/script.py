@@ -14,8 +14,6 @@ def main():
         context.parse_diff(diff.diff.decode())
 
         for ac in context.add_chunks:
-            patch_code = context.make_add_patch(ac)
-            patch = gitpython.make_patch(diff.a_path, patch_code)
             patch_content = context.make_add_patch_content(ac)
             patch = make_patch.make_full_patch(diff.a_path, patch_content)
             print(patch)
