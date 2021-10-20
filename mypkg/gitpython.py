@@ -19,6 +19,7 @@ def make_patch(file, diff):
     return patch
 
 def auto_commit(repo, patch):
+def auto_commit(repo, patch, path, start_id, end_id):
     with tempfile.NamedTemporaryFile(mode='w+') as tf:
         tf.write(patch)
         tf.seek(0)
