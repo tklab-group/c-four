@@ -4,6 +4,7 @@
 3.Empress
 4.Emperor
 5.Hierophan
+5.Hierophant
 6.Lovers
 7.Chariot
 8.Justice
