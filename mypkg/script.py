@@ -6,12 +6,6 @@ import os
 
 def main():
     path = os.getcwd()
-    repo = gitpython.get_repo(path)
-    diffs = gitpython.get_diffs(repo)
-    # patches = [ gitpython.make_patch(d.a_path, d.diff.decode()) for d in diffs ]
-    # for patch in patches:
-    #     print(patch)
-    # gitpython.auto_commit(repo, patches)
     repo = operate_git.get_repo(path)
     diffs = operate_git.get_diffs(repo)
     
