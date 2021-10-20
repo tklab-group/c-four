@@ -18,7 +18,6 @@ class AddChunk(Chunk):
     def __init__(self, start_id, end_id, codes):
         super().__init__(start_id, end_id)
         self.codes = codes
-        
 
 def make_full_patch(file, diff):
     patch = textwrap.dedent("""\
