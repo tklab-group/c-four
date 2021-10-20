@@ -116,10 +116,6 @@ class Context:
         append_flag = False
         insert_index = 0
         patch_code = ""
-        added_count = end_id - start_id + 1
-        a_start_id = b_start_id = start_id
-        a_line_num = 0
-        b_line_num = added_count
     
         for index, code_info in enumerate(self.code_infos):
             if code_info.line_id == start_id - 1:
