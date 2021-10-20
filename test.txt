@@ -16,7 +16,6 @@
 15.Hello
 16.Tower
 17.Star
----
 18.Moon
 19.Sun
 20.Judgement
