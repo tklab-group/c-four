@@ -1,6 +1,9 @@
 from mypkg import gitpython
 from mypkg import parse_diff
 from mypkg.parse_diff import Context
+from mypkg import operate_git
+from mypkg import make_patch
+from mypkg.make_patch import Context
 import inspect
 import os
 
