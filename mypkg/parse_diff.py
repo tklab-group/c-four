@@ -153,6 +153,9 @@ class Context:
             if code_info.line_id == start_id - 1 or code_info.line_id == end_id + 1:
             if code_info.line_id == start_id - 1:
                 patch_code += ' ' + code_info.code + '\n'
+                a_start_id = b_start_id = code_info.line_id
+                a_line_num += 1
+                b_line_num += 1
             elif start_id <= code_info.line_id <= end_id:
                 patch_code += '-' + code_info.code + '\n'
                 
