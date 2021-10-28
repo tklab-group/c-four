@@ -9,6 +9,7 @@ def get_diffs(repo):
     return repo.head.commit.diff(None, create_patch=True).iter_change_type('M')
 
 def auto_commit(repo, patch, path, start_id, end_id):
+def apply_patch(repo, patch):
     with tempfile.NamedTemporaryFile(mode='w+') as tf:
         tf.write(patch)
         tf.seek(0)
