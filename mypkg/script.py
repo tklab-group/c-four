@@ -18,6 +18,8 @@ def main():
             patch = make_patch.make_full_patch(diff.a_path, patch_content)
             print(patch)
             operate_git.auto_commit(repo, patch, diff.a_path, ac.start_id, ac.end_id)
+            operate_git.apply_patch(repo, patch)
+            operate_git.auto_commit(repo, diff.a_path, ac.start_id, ac.end_id)
 
         for rc in context.remove_chunks:
             patch_content = context.make_remove_patch_content(rc)
