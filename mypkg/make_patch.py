@@ -61,7 +61,6 @@ def split_remove_chunk(ids, chunks):
 
 def increment_line_id(count, start_id, chunks):
     for index, chunk in enumerate(chunks):
-        if chunk.start_id >= start_id:
         if chunk.start_id > start_id:
             chunks[index].start_id += count
             chunks[index].end_id += count
