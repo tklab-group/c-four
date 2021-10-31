@@ -10,13 +10,14 @@ class CodeInfo:
         self.code = code
         
 class Chunk:
-    def __init__(self, start_id, end_id):
+    def __init__(self, start_id, end_id, path):
         self.start_id = start_id
         self.end_id = end_id
+        self.path = path
         
 class AddChunk(Chunk):
-    def __init__(self, start_id, end_id, codes):
-        super().__init__(start_id, end_id)
+    def __init__(self, start_id, end_id, path, codes):
+        super().__init__(start_id, end_id, path)
         self.codes = codes
 
 def make_full_patch(file, diff):
@@ -25,10 +26,10 @@ def make_full_patch(file, diff):
     --- a/{0}
     +++ b/{0}
     """.format(file)) + diff
-
+ 
     return patch
 
-def split_add_chunk(infos, chunks):
+def split_add_chunk(infos, chunks, path):
     first_info = infos.pop(0)
     start_id, codes = first_info.line_id, [first_info.code]
     prev_id = end_id = start_id
@@ -41,13 +42,13 @@ def split_add_chunk(infos, chunks):
             end_id = id
             codes.append(info.code)
         else:
-            chunks.append(AddChunk(start_id - appeared_line, end_id - appeared_line, codes))
+            chunks.append(AddChunk(start_id - appeared_line, end_id - appeared_line, path, codes))
             appeared_line += end_id - start_id + 1
             start_id = end_id = id
             codes = [info.code]
         prev_id = id
 
-def split_remove_chunk(ids, chunks):
+def split_remove_chunk(ids, chunks, path):
     start_id = ids.pop(0)
     prev_id = end_id = start_id
     ids.append(-1)
@@ -55,7 +56,7 @@ def split_remove_chunk(ids, chunks):
         if id == prev_id + 1:
             end_id = id
         else:
-            chunks.append(Chunk(start_id, end_id))
+            chunks.append(Chunk(start_id, end_id, path))
             start_id = end_id = id
         prev_id = id
 
@@ -77,7 +78,7 @@ class Context:
         self.add_chunks = []
         self.remove_chunks = []
 
-    def parse_diff(self, lines):
+    def parse_diff(self, lines, path):
         lines = lines.split('\n')
         lines.pop()
         add_line_infos, remove_line_ids = [], []
@@ -104,9 +105,9 @@ class Context:
                 remove_line_id += 1
         
         if bool(add_line_infos):
-            split_add_chunk(add_line_infos, self.add_chunks)
+            split_add_chunk(add_line_infos, self.add_chunks, path)
         if bool(remove_line_ids):
-            split_remove_chunk(remove_line_ids, self.remove_chunks)
+            split_remove_chunk(remove_line_ids, self.remove_chunks, path)
     
     def make_add_patch_content(self, chunk):
         start_id, end_id = chunk.start_id, chunk.end_id
@@ -184,3 +185,6 @@ class Context:
 
         patch_code = '@@ -{0},{1} +{2},{3} @@\n'.format(a_start_id, a_line_num, b_start_id, b_line_num) + patch_code
         return patch_code
+    
+    def shift_lines(self, start_id, end_id):
+    
