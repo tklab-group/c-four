@@ -1,7 +1,4 @@
 import re
-from argparse import ArgumentParser
-import sys
-from enum import Enum, auto
 import textwrap
 
 class CodeInfo:

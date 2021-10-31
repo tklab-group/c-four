@@ -1,4 +1,3 @@
-import git
 from git import Repo
 import tempfile
 
