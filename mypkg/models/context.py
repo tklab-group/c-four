@@ -2,9 +2,9 @@ from sqlalchemy import Integer, String, Text, ForeignKey
 from sqlalchemy.schema import Column
 from sqlalchemy.orm import relationship
 from mypkg.db_settings import Base
-from models.code_info import CodeInfo
-from models.remove_chunk import RemoveChunk
-from models.add_chunk import AddChunk
+from mypkg.models.code_info import CodeInfo
+from mypkg.models.remove_chunk import RemoveChunk
+from mypkg.models.add_chunk import AddChunk
 
 class Context(Base):
     __tablename__ = 'context'
