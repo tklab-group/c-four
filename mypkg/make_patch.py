@@ -186,5 +186,3 @@ class Context:
         patch_code = '@@ -{0},{1} +{2},{3} @@\n'.format(a_start_id, a_line_num, b_start_id, b_line_num) + patch_code
         return patch_code
     
-    def shift_lines(self, start_id, end_id):
-    
