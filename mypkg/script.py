@@ -5,6 +5,8 @@ import inspect
 import os
 import itertools
 import random
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import create_engine
 
 class ChunkSet:
     def __init__(self):
