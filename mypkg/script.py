@@ -7,6 +7,8 @@ from mypkg.models.context import Context
 from mypkg.models.add_chunk import AddChunk
 from mypkg.models.remove_chunk import RemoveChunk
 from mypkg.models.chunk_set import ChunkSet
+from prompt_toolkit import Application
+from mypkg.prompt import generate_chunk_select_prompt
 
 def main():
     path = os.getcwd()
@@ -22,19 +24,16 @@ def main():
 
     generate_random_chunk_set(AddChunk.query.all(), RemoveChunk.query.all(), 2)
     chunk_sets = ChunkSet.query.all()
-    chunk_set = chunk_sets.pop(0)
+    if chunk_sets:
+        chunk_set = chunk_sets.pop(0)
     
-    while chunk_sets:
-        print('patch content')
-        for add_chunk in chunk_set.add_chunks:
-            print((add_chunk.start_id, add_chunk.end_id))
-            print(add_chunk.generate_add_patch())
-        for remove_chunk in chunk_set.remove_chunks:
-            print((remove_chunk.start_id, remove_chunk.end_id))
-            print(remove_chunk.generate_remove_patch())
-
-        if yes_no_input():
+    while True:
+        application = generate_chunk_select_prompt(chunk_set.add_chunks, chunk_set.remove_chunks)
+        application.run()
+        if chunk_sets:
             chunk_set = chunk_sets.pop(0)
+        else:
+            break
     
     # for context in contexts:
     #     for ac in context.add_chunks:
