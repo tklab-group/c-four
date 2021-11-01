@@ -1,30 +1,30 @@
 from mypkg import operate_git
-from mypkg import make_patch
-from mypkg.make_patch import Context
 import os
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import create_engine
 from mypkg.db_settings import Base, engine, session
 from mypkg.random_chunk import split_list, generate_random_chunk_set
 from mypkg.intractive_module import yes_no_input
 from mypkg.models.context import Context
-from mypkg.models.code_info import CodeInfo
 
 def main():
     path = os.getcwd()
     repo = operate_git.get_repo(path)
     diffs = operate_git.get_diffs(repo)
-    add_chunks, remove_chunks = [], []
     Base.metadata.create_all(engine)
     
     for diff in diffs:
-        context = Context()
-        context.parse_diff(diff.diff.decode(), diff.a_path)
-        add_chunks.extend(context.add_chunks)
-        remove_chunks.extend(context.remove_chunks)
-
-    chunk_sets = generate_random_chunk_set(add_chunks, remove_chunks)
-    chunk_set = chunk_sets.pop(0)
+        context = Context(diff.a_path)
+        session.add(context)
+        session.commit()
+        context.convert_diff_to_chunk(diff.diff.decode())
+        
+    all_context = Context.query.all()
+    for context in all_context:
+        for add_chunk in context.add_chunks:
+            print((add_chunk.start_id, add_chunk.end_id))
+            print(add_chunk.generate_add_patch())
+        for remove_chunk in context.remove_chunks:
+            print((remove_chunk.start_id, remove_chunk.end_id))
+            print(remove_chunk.generate_remove_patch())
 
     # while chunk_sets:
     #     print('patch content')
