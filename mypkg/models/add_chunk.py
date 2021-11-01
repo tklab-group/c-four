@@ -11,8 +11,9 @@ class AddChunk(Base):
     end_id = Column(Integer, nullable=False)
     context_id = Column(Integer, ForeignKey('context.id'))
     add_chunk_codes = relationship("AddChunkCode", backref='add_chunk')
-    
-    def __init__(self, start_id, end_id, context_id):
+    chunk_set_id = Column(Integer, ForeignKey('chunk_set.id'), nullable=True)
+
+    def __init__(self, start_id, end_id, context_id, chunk_set_id=None):
         self.start_id = start_id
         self.end_id = end_id
         self.context_id = context_id

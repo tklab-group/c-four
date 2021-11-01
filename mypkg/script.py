@@ -4,6 +4,9 @@ from mypkg.db_settings import Base, engine, session
 from mypkg.random_chunk import split_list, generate_random_chunk_set
 from mypkg.intractive_module import yes_no_input
 from mypkg.models.context import Context
+from mypkg.models.add_chunk import AddChunk
+from mypkg.models.remove_chunk import RemoveChunk
+from mypkg.models.chunk_set import ChunkSet
 
 def main():
     path = os.getcwd()
@@ -16,29 +19,22 @@ def main():
         session.add(context)
         session.commit()
         context.convert_diff_to_chunk(diff.diff.decode())
-        
-    all_context = Context.query.all()
-    for context in all_context:
-        for add_chunk in context.add_chunks:
+
+    generate_random_chunk_set(AddChunk.query.all(), RemoveChunk.query.all(), 2)
+    chunk_sets = ChunkSet.query.all()
+    chunk_set = chunk_sets.pop(0)
+    
+    while chunk_sets:
+        print('patch content')
+        for add_chunk in chunk_set.add_chunks:
             print((add_chunk.start_id, add_chunk.end_id))
             print(add_chunk.generate_add_patch())
-        for remove_chunk in context.remove_chunks:
+        for remove_chunk in chunk_set.remove_chunks:
             print((remove_chunk.start_id, remove_chunk.end_id))
             print(remove_chunk.generate_remove_patch())
 
-    # while chunk_sets:
-    #     print('patch content')
-    #     for add_chunk in chunk_set.add_chunks:
-    #         patch_content = context.make_add_patch_content(add_chunk)
-    #         patch = make_patch.make_full_patch(diff.a_path, patch_content)
-    #         print(patch)
-    #     for remove_chunk in chunk_set.remove_chunks:
-    #         patch_content = context.make_remove_patch_content(remove_chunk)
-    #         patch = make_patch.make_full_patch(diff.a_path, patch_content)
-    #         print(patch)
-    #
-    #     if yes_no_input():
-    #         chunk_set = chunk_sets.pop(0)
+        if yes_no_input():
+            chunk_set = chunk_sets.pop(0)
     
     # for context in contexts:
     #     for ac in context.add_chunks:
