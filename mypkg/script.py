@@ -40,21 +40,6 @@ def main():
                 unstage_chunk_set = ChunkSet()
                 session.add(unstage_chunk_set)
                 session.commit()
-    
-    # for context in contexts:
-    #     for ac in context.add_chunks:
-    #         patch_content = context.make_add_patch_content(ac)
-    #         patch = make_patch.make_full_patch(diff.a_path, patch_content)
-    #         print(patch)
-    #         operate_git.apply_patch(repo, patch)
-    #         operate_git.auto_commit(repo, diff.a_path, ac.start_id, ac.end_id)
-    #
-    #     for rc in context.remove_chunks:
-    #         patch_content = context.make_remove_patch_content(rc)
-    #         patch = make_patch.make_full_patch(diff.a_path, patch_content)
-    #         print(patch)
-    #         operate_git.apply_patch(repo, patch)
-    #         operate_git.auto_commit(repo, diff.a_path, rc.start_id, rc.end_id)
 
 if __name__ == '__main__':
     main()
