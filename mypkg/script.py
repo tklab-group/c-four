@@ -24,16 +24,22 @@ def main():
 
     generate_random_chunk_set(AddChunk.query.all(), RemoveChunk.query.all(), 2)
     chunk_sets = ChunkSet.query.all()
-    if chunk_sets:
-        chunk_set = chunk_sets.pop(0)
+        
+    unstage_chunk_set = ChunkSet()
+    session.add(unstage_chunk_set)
+    session.commit()
     
-    while True:
-        application = generate_chunk_select_prompt(chunk_set.add_chunks, chunk_set.remove_chunks)
+    while chunk_sets:
+        chunk_set = chunk_sets.pop(0)
+        application = generate_chunk_select_prompt(chunk_set, unstage_chunk_set.id)
         application.run()
-        if chunk_sets:
-            chunk_set = chunk_sets.pop(0)
-        else:
-            break
+        
+        if not chunk_sets:
+            if unstage_chunk_set.add_chunks or unstage_chunk_set.remove_chunks:
+                chunk_sets.append(unstage_chunk_set)
+                unstage_chunk_set = ChunkSet()
+                session.add(unstage_chunk_set)
+                session.commit()
     
     # for context in contexts:
     #     for ac in context.add_chunks:
