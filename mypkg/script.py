@@ -24,22 +24,17 @@ def main():
 
     generate_random_chunk_set(AddChunk.query.all(), RemoveChunk.query.all(), 2)
     chunk_sets = ChunkSet.query.all()
-        
-    unstage_chunk_set = ChunkSet()
-    session.add(unstage_chunk_set)
+    
+    other_chunk_set = ChunkSet()
+    session.add(other_chunk_set)
     session.commit()
     
-    while chunk_sets:
-        chunk_set = chunk_sets.pop(0)
-        application = generate_chunk_select_prompt(chunk_set, unstage_chunk_set.id)
-        application.run()
-        
-        if not chunk_sets:
-            if unstage_chunk_set.add_chunks or unstage_chunk_set.remove_chunks:
-                chunk_sets.append(unstage_chunk_set)
-                unstage_chunk_set = ChunkSet()
-                session.add(unstage_chunk_set)
-                session.commit()
+    cur_chunk_set_idx = 0
+    chunk_sets_size = len(chunk_sets)
+    
+    while cur_chunk_set_idx < chunk_sets_size:
+        application = generate_chunk_select_prompt(cur_chunk_set_idx, other_chunk_set.id)
+        cur_chunk_set_idx = application.run()
 
 if __name__ == '__main__':
     main()
