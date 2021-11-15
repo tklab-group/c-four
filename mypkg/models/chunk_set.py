@@ -1,4 +1,4 @@
-from sqlalchemy import Integer
+from sqlalchemy import Integer, String
 from sqlalchemy.schema import Column
 from mypkg.db_settings import Base
 from sqlalchemy.orm import relationship
@@ -10,3 +10,7 @@ class ChunkSet(Base):
     id = Column(Integer, primary_key=True)
     remove_chunks = relationship("RemoveChunk", backref='chunk_set')
     add_chunks = relationship("AddChunk", backref='chunk_set')
+    message = Column(String(255), nullable=False)
+    
+    def __init__(self):
+        self.message = ''
