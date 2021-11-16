@@ -9,6 +9,8 @@ from mypkg.models.remove_chunk import RemoveChunk
 from mypkg.models.chunk_set import ChunkSet
 from prompt_toolkit import Application
 from mypkg.prompt import generate_chunk_select_prompt
+import itertools
+from prompt_toolkit.shortcuts import yes_no_dialog
 
 def main():
     path = os.getcwd()
@@ -22,19 +24,56 @@ def main():
         session.commit()
         context.convert_diff_to_chunk(diff.diff.decode())
 
-    generate_random_chunk_set(AddChunk.query.all(), RemoveChunk.query.all(), 2)
-    chunk_sets = ChunkSet.query.all()
+    while True:
+        all_chunks = []
+        all_add_chunks = AddChunk.query.all()
+        all_remove_chunks = RemoveChunk.query.all()
+        all_chunks.extend(all_add_chunks)
+        all_chunks.extend(all_remove_chunks)
+        
+        generate_random_chunk_set(all_add_chunks, all_remove_chunks, 2)
+        chunk_sets = ChunkSet.query.all()
+        
+        cur_chunk_set_idx = 0
+        chunk_sets_size = len(chunk_sets)
+        
+        while cur_chunk_set_idx < chunk_sets_size:
+            cur_chunks = []
+            cur_chunk_set = chunk_sets[cur_chunk_set_idx]
+            cur_chunks.extend(cur_chunk_set.add_chunks)
+            cur_chunks.extend(cur_chunk_set.remove_chunks)
+            path_sets = {chunk.context.path for chunk in cur_chunks}
+            
+            candidates = [chunk for chunk in all_chunks if chunk.context.path in path_sets and chunk.chunk_set_id != cur_chunk_set.id]
     
-    other_chunk_set = ChunkSet()
-    session.add(other_chunk_set)
-    session.commit()
+            application = generate_chunk_select_prompt(chunk_sets, cur_chunk_set_idx, candidates)
+            cur_chunk_set_idx = application.run()
+            
+        for chunk_set in chunk_sets:
+            for add_chunk in chunk_set.add_chunks:
+                AddChunk.query.filter(AddChunk.id == add_chunk.id).delete()
+            session.commit()
+            for remove_chunk in chunk_set.remove_chunks:
+                RemoveChunk.query.filter(RemoveChunk.id == remove_chunk.id).delete()
+            session.commit()
+            ChunkSet.query.filter(ChunkSet.id == chunk_set.id).delete()
+            session.commit()
+        
+        other_chunks = []
+        other_chunks.extend(AddChunk.query.all())
+        other_chunks.extend(RemoveChunk.query.all())
     
-    cur_chunk_set_idx = 0
-    chunk_sets_size = len(chunk_sets)
-    
-    while cur_chunk_set_idx < chunk_sets_size:
-        application = generate_chunk_select_prompt(cur_chunk_set_idx, other_chunk_set.id)
-        cur_chunk_set_idx = application.run()
+        if other_chunks:
+            result = yes_no_dialog(
+                title="Confirmation of continuation",
+                text="There is still {} uncommitted chunks.\nDo you want to continue splitting?".format(len(other_chunks))
+            ).run()
+            
+            if not result:
+                break
+        else:
+            break
+        
 
 if __name__ == '__main__':
     main()

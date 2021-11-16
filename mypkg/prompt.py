@@ -1,6 +1,6 @@
 from mypkg.db_settings import session
 from prompt_toolkit.application import Application
-from prompt_toolkit.layout import HSplit, VSplit, Layout, Window, FormattedTextControl, BufferControl, DummyControl
+from prompt_toolkit.layout import HSplit, VSplit, Layout, Window, FormattedTextControl, BufferControl, DummyControl, ScrollablePane
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.widgets import Box, Button, Frame, Label, TextArea
 from prompt_toolkit.styles import Style
@@ -10,7 +10,8 @@ from prompt_toolkit.layout.dimension import D
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.document import Document
 from functools import partial
-from mypkg.models.chunk_set import ChunkSet
+from mypkg.models.add_chunk import AddChunk
+from mypkg.models.remove_chunk import RemoveChunk
 from enum import Enum, auto
 
 class ChunkState(Enum):
@@ -18,12 +19,14 @@ class ChunkState(Enum):
     NEXT = auto()
     PREV = auto()
     OTHER = auto()
+    ASSIGN = auto()
 
 CHECKBOXWIDTH = 7
 
 def chunk_selected(text_area, content):
     text_area.text = content
 
+# chunk contents generators
 def generate_buffer_key_bindings(text_area, patch, check_box, chunk_state_list, index):
     kb = KeyBindings()
     
@@ -38,7 +41,7 @@ def generate_buffer_key_bindings(text_area, patch, check_box, chunk_state_list, 
     
     @kb.add("d")
     def _(event):
-        check_box.text = " [ ]"
+        check_box.text = " [x]"
         chunk_state_list[index] = ChunkState.OTHER
 
     @kb.add("p")
@@ -84,12 +87,11 @@ def generate_chunk_buffers(add_chunks, remove_chunks, text_area, check_boxes, ch
         
     return buffers
 
-def generate_key_bindings():
-    kb = KeyBindings()
-    kb.add("down")(focus_next)
-    kb.add("up")(focus_previous)
-    return kb
+def generate_chunks_with_check_box(check_boxes, all_chunks):
+    check_box_contents = [Box(body=check_box, style="class:check-box", width=CHECKBOXWIDTH) for check_box in check_boxes]
+    return [VSplit([check_box_contents[i], all_chunks[i]]) for i in range(len(all_chunks))]
 
+# general content generators
 def generate_label(text, style, width):
     window = Window(
         FormattedTextControl(text=text),
@@ -99,12 +101,57 @@ def generate_label(text, style, width):
     )
     return window
 
-def generate_chunks_with_check_box(check_boxes, all_chunks):
-    check_box_contents = [Box(body=check_box, style="class:check-box", width=CHECKBOXWIDTH) for check_box in check_boxes]
-    return [VSplit([check_box_contents[i], all_chunks[i]]) for i in range(len(all_chunks))]
+# candidate contents generators
+def generate_candidate_key_bindings(text_area, patch, check_box, candidate_state_list, index):
+    kb = KeyBindings()
+    
+    @kb.add("c-m")
+    def _(event):
+        text_area.text = patch
+    
+    @kb.add("a")
+    def _(event):
+        check_box.text = " [*]"
+        candidate_state_list[index] = ChunkState.ASSIGN
+    
+    @kb.add("d")
+    def _(event):
+        check_box.text = " [ ]"
+        candidate_state_list[index] = ChunkState.KEEP
+    
+    return kb
 
-def generate_chunk_select_prompt(cur_chunk_set_idx, other_chunk_set_id):
-    chunk_sets = ChunkSet.query.all()[:-1]
+def generate_candidate_window(buffer_text, text_area, patch, style, check_box, candidate_state_list, index):
+    window = Window(
+        BufferControl(
+            Buffer(
+                document=Document(buffer_text),
+                read_only=True
+            ),
+            focusable=True,
+            key_bindings=generate_candidate_key_bindings(text_area, patch, check_box, candidate_state_list, index),
+        ),
+        height=3,
+        style=style,
+        width=D(weight=2)
+    )
+    
+    return window
+
+def generate_candidate_buffers(candidates, text_area, check_boxes, candidate_state_list):
+    buffers = []
+    index = 0
+    for candidate in candidates:
+        buffer_text = '{} \n({}, {})\nPage: {}'.format(candidate.context.path, candidate.start_id, candidate.end_id, candidate.chunk_set_id)
+        if isinstance(candidate, AddChunk):
+            buffers.append(generate_candidate_window(buffer_text, text_area, candidate.generate_add_patch(), "class:add-chunk", check_boxes[index], candidate_state_list, index))
+        else:
+            buffers.append(generate_candidate_window(buffer_text, text_area, candidate.generate_remove_patch(), "class:remove-chunk", check_boxes[index], candidate_state_list, index))
+        index += 1
+    
+    return buffers
+
+def generate_chunk_select_prompt(chunk_sets, cur_chunk_set_idx, candidates):
     chunk_set = chunk_sets[cur_chunk_set_idx]
     is_not_first = cur_chunk_set_idx > 0
     is_not_last = cur_chunk_set_idx < len(chunk_sets) - 1
@@ -120,17 +167,17 @@ def generate_chunk_select_prompt(cur_chunk_set_idx, other_chunk_set_id):
         next_chunk = None
     
     add_chunks, remove_chunks = chunk_set.add_chunks, chunk_set.remove_chunks
-    text_area = FormattedTextControl()
-    text_window = Window(text_area, z_index=0)
+    diff_text = FormattedTextControl(focusable=True)
+    diff_area = Window(diff_text)
     
     check_boxes = [Label(text=" [*]") for i in range(len(add_chunks) + len(remove_chunks))]
     chunk_state_list = [ChunkState.KEEP for i in range(len(add_chunks) + len(remove_chunks))]
-    all_chunks = generate_chunk_buffers(add_chunks, remove_chunks, text_area, check_boxes, chunk_state_list)
+    all_chunks = generate_chunk_buffers(add_chunks, remove_chunks, diff_text, check_boxes, chunk_state_list)
     chunk_with_check_boxes = generate_chunks_with_check_box(check_boxes, all_chunks)
     
     check_box_label = generate_label("State", "class:check-box-label", CHECKBOXWIDTH)
     chunk_set_label = generate_label("Chunk Sets", "class:chunk-set-label", D(weight=1))
-    chunk_with_check_boxes.insert(0, VSplit([check_box_label, chunk_set_label]))
+    
     commit_msg_input = TextArea(
         height=2,
         prompt="commit message:",
@@ -155,7 +202,17 @@ def generate_chunk_select_prompt(cur_chunk_set_idx, other_chunk_set_id):
             elif chunk_state == ChunkState.NEXT and next_chunk:
                 cur_chunk.chunk_set_id = next_chunk.id
             elif chunk_state == ChunkState.OTHER:
-                cur_chunk.chunk_set_id = other_chunk_set_id
+                cur_chunk.chunk_set_id = None
+            index += 1
+        session.commit()
+        
+    def assign_selected_candidates():
+        index = 0
+    
+        for candidate in candidates:
+            candidate_state = candidate_state_list[index]
+            if candidate_state == ChunkState.ASSIGN:
+                candidate.chunk_set_id = chunk_set.id
             index += 1
         session.commit()
 
@@ -164,11 +221,13 @@ def generate_chunk_select_prompt(cur_chunk_set_idx, other_chunk_set_id):
     @prev_chunk_kb.add("c-m")
     def _(event):
         commit_staged_chunks()
+        assign_selected_candidates()
         event.app.exit(result=cur_chunk_set_idx - 1)
 
     @next_chunk_kb.add("c-m")
     def _(event):
         commit_staged_chunks()
+        assign_selected_candidates()
         event.app.exit(result=cur_chunk_set_idx + 1)
 
     if is_not_first:
@@ -211,6 +270,14 @@ def generate_chunk_select_prompt(cur_chunk_set_idx, other_chunk_set_id):
         style=next_chunk_button_style,
     )
     
+    candidate_patch_text = FormattedTextControl(focusable=True)
+    candidate_patch_area = Window(candidate_patch_text)
+    
+    candidate_check_boxes = [Label(text=" [ ]") for i in range(len(candidates))]
+    candidate_state_list = [ChunkState.KEEP for i in range(len(candidates))]
+    all_candidates = generate_candidate_buffers(candidates, candidate_patch_text, candidate_check_boxes, candidate_state_list)
+    candidate_with_check_boxes = generate_chunks_with_check_box(candidate_check_boxes, all_candidates)
+    
     root_container = HSplit(
         [
             Label(text="Press `Enter` to show diff, press 'a' to stage the chunk, and press 'd' to unstage."),
@@ -218,7 +285,7 @@ def generate_chunk_select_prompt(cur_chunk_set_idx, other_chunk_set_id):
                 [
                     Window(DummyControl()),
                     Window(DummyControl()),
-                    Label(text="Page: {} / {}".format(cur_chunk_set_idx + 1, len(chunk_sets)), style="class:page-num"),
+                    Label(text="Suggested Chunk Sets({} chunks) (Page: {} / {})".format(len(all_chunks), cur_chunk_set_idx + 1, len(chunk_sets)), style="class:page-num"),
                     Window(DummyControl()),
                     Window(DummyControl()),
                 ]
@@ -227,19 +294,58 @@ def generate_chunk_select_prompt(cur_chunk_set_idx, other_chunk_set_id):
                 [
                     HSplit(
                         [
-                            HSplit(
-                                chunk_with_check_boxes,
-                                padding=0,
-                            ),
-                        ],
-                        width=D(max=30, weight=1),
-                        style="class:left-pane"
+                            VSplit([check_box_label, chunk_set_label]),
+                            ScrollablePane(
+                                HSplit(
+                                    chunk_with_check_boxes,
+                                    width=D(max=30, weight=1),
+                                    style="class:left-pane"
+                                )
+                            )
+                        ]
                     ),
                     HSplit(
                         [
                             Label(text="Diff", style="class:diff"),
                             Box(
-                                body=Frame(text_window),
+                                body=Frame(ScrollablePane(diff_area)),
+                                padding=0,
+                                style='class:right-pane',
+                            ),
+                        ],
+                        width=D(weight=3),
+                    ),
+                ],
+                height=D(),
+            ),
+            VSplit(
+                [
+                    Window(DummyControl()),
+                    Window(DummyControl()),
+                    Label(text="Candidate Chunks({} chunks)".format(len(candidates)), style="class:other-candidates"),
+                    Window(DummyControl()),
+                    Window(DummyControl()),
+                ]
+            ),
+            VSplit(
+                [
+                    HSplit(
+                        [
+                            VSplit([check_box_label, chunk_set_label]),
+                            ScrollablePane(
+                                HSplit(
+                                    candidate_with_check_boxes,
+                                    width=D(max=30, weight=1),
+                                    style="class:left-pane"
+                                )
+                            ),
+                        ]
+                    ),
+                    HSplit(
+                        [
+                            Label(text="Diff", style="class:diff"),
+                            Box(
+                                body=Frame(ScrollablePane(candidate_patch_area)),
                                 padding=0,
                                 style='class:right-pane',
                             ),
@@ -259,6 +365,7 @@ def generate_chunk_select_prompt(cur_chunk_set_idx, other_chunk_set_id):
         ]
     )
 
+    # define styles
     style = Style(
         [
             ("left-pane", "bg:#454545 #ffffff"),
@@ -275,11 +382,52 @@ def generate_chunk_select_prompt(cur_chunk_set_idx, other_chunk_set_id):
             ("prev-chunk-button-normal", "bg:#b22222 #ffffff"),
             ("next-chunk-button-last", "bg:#00bfff #ffff00 bold"),
             ("next-chunk-button-normal", "bg:#00bfff #ffffff"),
-            ("page-num", "bg:#ffbf7f #000000")
+            ("page-num", "bg:#ffbf7f #000000"),
+            ("other-candidates", "bg:#6395ed #000000")
         ]
     )
     
+    # define key bindings
+    gen_kb = KeyBindings()
+    gen_kb.add("down")(focus_next)
+    gen_kb.add("up")(focus_previous)
+
+    @gen_kb.add("c-c")
+    @gen_kb.add("c-q")
+    def _(event):
+        event.app.exit()
+
+    @gen_kb.add("c-t")
+    def _(event):
+        event.app.layout.focus(commit_msg_input)
+
+    @gen_kb.add("c-e")
+    def _(event):
+        event.app.layout.focus(all_chunks[0])
+
+    @gen_kb.add("c-r")
+    def _(event):
+        event.app.layout.focus(all_candidates[0])
+
+    @gen_kb.add("c-d")
+    def _(event):
+        event.app.layout.focus(diff_area)
+
+    @gen_kb.add("c-f")
+    def _(event):
+        event.app.layout.focus(candidate_patch_area)
+
+    @gen_kb.add("c-p")
+    def _(event):
+        if is_not_first:
+            event.app.layout.focus(prev_chunk_button)
+
+    @gen_kb.add("c-n")
+    def _(event):
+        event.app.layout.focus(next_chunk_button)
+    
+    # define layout and application
     layout = Layout(container=root_container, focused_element=next_chunk_button)
-    application = Application(layout=layout, key_bindings=generate_key_bindings(), style=style, full_screen=True, mouse_support=True)
+    application = Application(layout=layout, key_bindings=gen_kb, style=style, full_screen=True, mouse_support=True)
     return application
 
