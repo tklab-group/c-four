@@ -45,8 +45,9 @@ def main():
             path_sets = {chunk.context.path for chunk in cur_chunks}
             
             candidates = [chunk for chunk in all_chunks if chunk.context.path in path_sets and chunk.chunk_set_id != cur_chunk_set.id]
+            pending_chunks = [chunk for chunk in all_chunks if chunk.chunk_set_id is None]
     
-            application = generate_chunk_select_prompt(chunk_sets, cur_chunk_set_idx, candidates)
+            application = generate_chunk_select_prompt(chunk_sets, cur_chunk_set_idx, candidates, pending_chunks)
             cur_chunk_set_idx = application.run()
             
         for chunk_set in chunk_sets:
@@ -66,7 +67,7 @@ def main():
         if other_chunks:
             result = yes_no_dialog(
                 title="Confirmation of continuation",
-                text="There is still {} uncommitted chunks.\nDo you want to continue splitting?".format(len(other_chunks))
+                text="There is still {} pending chunks.\nDo you want to continue splitting?".format(len(other_chunks))
             ).run()
             
             if not result:

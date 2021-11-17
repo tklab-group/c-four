@@ -18,7 +18,7 @@ class ChunkState(Enum):
     KEEP = auto()
     NEXT = auto()
     PREV = auto()
-    OTHER = auto()
+    PENDING = auto()
     ASSIGN = auto()
 
 CHECKBOXWIDTH = 7
@@ -42,7 +42,7 @@ def generate_buffer_key_bindings(text_area, patch, check_box, chunk_state_list, 
     @kb.add("d")
     def _(event):
         check_box.text = " [x]"
-        chunk_state_list[index] = ChunkState.OTHER
+        chunk_state_list[index] = ChunkState.PENDING
 
     @kb.add("p")
     def _(event):
@@ -151,7 +151,55 @@ def generate_candidate_buffers(candidates, text_area, check_boxes, candidate_sta
     
     return buffers
 
-def generate_chunk_select_prompt(chunk_sets, cur_chunk_set_idx, candidates):
+def generate_chunk_with_diff_screen(chunk_with_check_boxes, diff_area):
+    check_box_label = generate_label("State", "class:check-box-label", CHECKBOXWIDTH)
+    chunk_set_label = generate_label("Chunk Sets", "class:chunk-set-label", D(weight=1))
+    
+    screen = VSplit(
+        [
+            HSplit(
+                [
+                    VSplit([check_box_label, chunk_set_label]),
+                    ScrollablePane(
+                        HSplit(
+                            chunk_with_check_boxes,
+                            width=D(max=30, weight=1),
+                            style="class:left-pane"
+                        )
+                    )
+                ]
+            ),
+            HSplit(
+                [
+                    Label(text="Diff", style="class:diff"),
+                    Box(
+                        body=Frame(ScrollablePane(diff_area)),
+                        padding=0,
+                        style='class:right-pane',
+                    ),
+                ],
+                width=D(weight=3),
+            ),
+        ],
+        height=D(),
+    )
+    
+    return screen
+
+def generate_screen_title_label(text, style):
+    screen = VSplit(
+        [
+            Window(DummyControl()),
+            Window(DummyControl()),
+            Label(text=text, style=style),
+            Window(DummyControl()),
+            Window(DummyControl()),
+        ]
+    )
+    
+    return screen
+
+def generate_chunk_select_prompt(chunk_sets, cur_chunk_set_idx, candidates, pending_chunks):
     chunk_set = chunk_sets[cur_chunk_set_idx]
     is_not_first = cur_chunk_set_idx > 0
     is_not_last = cur_chunk_set_idx < len(chunk_sets) - 1
@@ -174,9 +222,6 @@ def generate_chunk_select_prompt(chunk_sets, cur_chunk_set_idx, candidates):
     chunk_state_list = [ChunkState.KEEP for i in range(len(add_chunks) + len(remove_chunks))]
     all_chunks = generate_chunk_buffers(add_chunks, remove_chunks, diff_text, check_boxes, chunk_state_list)
     chunk_with_check_boxes = generate_chunks_with_check_box(check_boxes, all_chunks)
-    
-    check_box_label = generate_label("State", "class:check-box-label", CHECKBOXWIDTH)
-    chunk_set_label = generate_label("Chunk Sets", "class:chunk-set-label", D(weight=1))
     
     commit_msg_input = TextArea(
         height=2,
@@ -201,7 +246,7 @@ def generate_chunk_select_prompt(chunk_sets, cur_chunk_set_idx, candidates):
                 cur_chunk.chunk_set_id = prev_chunk.id
             elif chunk_state == ChunkState.NEXT and next_chunk:
                 cur_chunk.chunk_set_id = next_chunk.id
-            elif chunk_state == ChunkState.OTHER:
+            elif chunk_state == ChunkState.PENDING:
                 cur_chunk.chunk_set_id = None
             index += 1
         session.commit()
@@ -270,91 +315,33 @@ def generate_chunk_select_prompt(chunk_sets, cur_chunk_set_idx, candidates):
         style=next_chunk_button_style,
     )
     
-    candidate_patch_text = FormattedTextControl(focusable=True)
-    candidate_patch_area = Window(candidate_patch_text)
+    #candidate chunks components
+    candidate_diff_text = FormattedTextControl(focusable=True)
+    candidate_diff_area = Window(candidate_diff_text)
     
     candidate_check_boxes = [Label(text=" [ ]") for i in range(len(candidates))]
     candidate_state_list = [ChunkState.KEEP for i in range(len(candidates))]
-    all_candidates = generate_candidate_buffers(candidates, candidate_patch_text, candidate_check_boxes, candidate_state_list)
+    all_candidates = generate_candidate_buffers(candidates, candidate_diff_text, candidate_check_boxes, candidate_state_list)
     candidate_with_check_boxes = generate_chunks_with_check_box(candidate_check_boxes, all_candidates)
+
+    #pending chunks components
+    pending_diff_text = FormattedTextControl(focusable=True)
+    pending_diff_area = Window(pending_diff_text)
+
+    pending_check_boxes = [Label(text=" [ ]") for i in range(len(pending_chunks))]
+    pending_state_list = [ChunkState.KEEP for i in range(len(pending_chunks))]
+    all_pendings = generate_candidate_buffers(pending_chunks, pending_diff_text, pending_check_boxes, pending_state_list)
+    pending_with_check_boxes = generate_chunks_with_check_box(pending_check_boxes, all_pendings)
     
     root_container = HSplit(
         [
             Label(text="Press `Enter` to show diff, press 'a' to stage the chunk, and press 'd' to unstage."),
-            VSplit(
-                [
-                    Window(DummyControl()),
-                    Window(DummyControl()),
-                    Label(text="Suggested Chunk Sets({} chunks) (Page: {} / {})".format(len(all_chunks), cur_chunk_set_idx + 1, len(chunk_sets)), style="class:page-num"),
-                    Window(DummyControl()),
-                    Window(DummyControl()),
-                ]
-            ),
-            VSplit(
-                [
-                    HSplit(
-                        [
-                            VSplit([check_box_label, chunk_set_label]),
-                            ScrollablePane(
-                                HSplit(
-                                    chunk_with_check_boxes,
-                                    width=D(max=30, weight=1),
-                                    style="class:left-pane"
-                                )
-                            )
-                        ]
-                    ),
-                    HSplit(
-                        [
-                            Label(text="Diff", style="class:diff"),
-                            Box(
-                                body=Frame(ScrollablePane(diff_area)),
-                                padding=0,
-                                style='class:right-pane',
-                            ),
-                        ],
-                        width=D(weight=3),
-                    ),
-                ],
-                height=D(),
-            ),
-            VSplit(
-                [
-                    Window(DummyControl()),
-                    Window(DummyControl()),
-                    Label(text="Candidate Chunks({} chunks)".format(len(candidates)), style="class:other-candidates"),
-                    Window(DummyControl()),
-                    Window(DummyControl()),
-                ]
-            ),
-            VSplit(
-                [
-                    HSplit(
-                        [
-                            VSplit([check_box_label, chunk_set_label]),
-                            ScrollablePane(
-                                HSplit(
-                                    candidate_with_check_boxes,
-                                    width=D(max=30, weight=1),
-                                    style="class:left-pane"
-                                )
-                            ),
-                        ]
-                    ),
-                    HSplit(
-                        [
-                            Label(text="Diff", style="class:diff"),
-                            Box(
-                                body=Frame(ScrollablePane(candidate_patch_area)),
-                                padding=0,
-                                style='class:right-pane',
-                            ),
-                        ],
-                        width=D(weight=3),
-                    ),
-                ],
-                height=D(),
-            ),
+            generate_screen_title_label("Suggested Chunk Sets({} chunks) (Page: {} / {})".format(len(all_chunks), cur_chunk_set_idx + 1, len(chunk_sets)), "class:page-num"),
+            generate_chunk_with_diff_screen(chunk_with_check_boxes, diff_area),
+            generate_screen_title_label("Candidate Chunks({} chunks)".format(len(candidates)), "class:candidates-label"),
+            generate_chunk_with_diff_screen(candidate_with_check_boxes, candidate_diff_area),
+            generate_screen_title_label("Pending Chunks({} chunks)".format(len(pending_chunks)), "class:pending-label"),
+            generate_chunk_with_diff_screen(pending_with_check_boxes, pending_diff_area),
             commit_msg_input,
             VSplit(
                 [
@@ -383,7 +370,8 @@ def generate_chunk_select_prompt(chunk_sets, cur_chunk_set_idx, candidates):
             ("next-chunk-button-last", "bg:#00bfff #ffff00 bold"),
             ("next-chunk-button-normal", "bg:#00bfff #ffffff"),
             ("page-num", "bg:#ffbf7f #000000"),
-            ("other-candidates", "bg:#6395ed #000000")
+            ("candidates-label", "bg:#6395ed #000000"),
+            ("pending-label", "bg:#6395ed #000000"),
         ]
     )
     
@@ -415,7 +403,7 @@ def generate_chunk_select_prompt(chunk_sets, cur_chunk_set_idx, candidates):
 
     @gen_kb.add("c-f")
     def _(event):
-        event.app.layout.focus(candidate_patch_area)
+        event.app.layout.focus(candidate_diff_area)
 
     @gen_kb.add("c-p")
     def _(event):
