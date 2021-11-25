@@ -142,7 +142,12 @@ def generate_candidate_buffers(candidates, text_area, check_boxes, candidate_sta
     buffers = []
     index = 0
     for candidate in candidates:
-        buffer_text = '{} \n({}, {})\nPage: {}'.format(candidate.context.path, candidate.start_id, candidate.end_id, candidate.chunk_set_id)
+        buffer_text = '{} \n({}, {})\n'.format(candidate.context.path, candidate.start_id, candidate.end_id)
+        if candidate.chunk_set_id is not None:
+            buffer_text += 'Page: {}'.format(candidate.chunk_set_id)
+        else:
+            buffer_text += 'Pending'
+        
         if isinstance(candidate, AddChunk):
             buffers.append(generate_candidate_window(buffer_text, text_area, candidate.generate_add_patch(), "class:add-chunk", check_boxes[index], candidate_state_list, index))
         else:
@@ -261,18 +266,30 @@ def generate_chunk_select_prompt(chunk_sets, cur_chunk_set_idx, candidates, pend
             index += 1
         session.commit()
 
+    def assign_selected_pendings():
+        index = 0
+    
+        for pending_chunk in pending_chunks:
+            pending_state = pending_state_list[index]
+            if pending_state == ChunkState.ASSIGN:
+                pending_chunk.chunk_set_id = chunk_set.id
+            index += 1
+        session.commit()
+
     prev_chunk_kb, next_chunk_kb = KeyBindings(), KeyBindings()
 
     @prev_chunk_kb.add("c-m")
     def _(event):
         commit_staged_chunks()
         assign_selected_candidates()
+        assign_selected_pendings()
         event.app.exit(result=cur_chunk_set_idx - 1)
 
     @next_chunk_kb.add("c-m")
     def _(event):
         commit_staged_chunks()
         assign_selected_candidates()
+        assign_selected_pendings()
         event.app.exit(result=cur_chunk_set_idx + 1)
 
     if is_not_first:
@@ -335,7 +352,7 @@ def generate_chunk_select_prompt(chunk_sets, cur_chunk_set_idx, candidates, pend
     
     root_container = HSplit(
         [
-            Label(text="Press `Enter` to show diff, press 'a' to stage the chunk, and press 'd' to unstage."),
+            Label(text="Press `Enter` to show diff, press 'a' to include the chunk to this chunk set, press 'd' to put on pending status,\npress 'p' to move the chunk to previous chunk set, and press 'n' to move the chunk to next chunk set."),
             generate_screen_title_label("Suggested Chunk Sets({} chunks) (Page: {} / {})".format(len(all_chunks), cur_chunk_set_idx + 1, len(chunk_sets)), "class:page-num"),
             generate_chunk_with_diff_screen(chunk_with_check_boxes, diff_area),
             generate_screen_title_label("Candidate Chunks({} chunks)".format(len(candidates)), "class:candidates-label"),
@@ -371,7 +388,7 @@ def generate_chunk_select_prompt(chunk_sets, cur_chunk_set_idx, candidates, pend
             ("next-chunk-button-normal", "bg:#00bfff #ffffff"),
             ("page-num", "bg:#ffbf7f #000000"),
             ("candidates-label", "bg:#6395ed #000000"),
-            ("pending-label", "bg:#6395ed #000000"),
+            ("pending-label", "bg:#2e8b57 #000000"),
         ]
     )
     
@@ -380,7 +397,6 @@ def generate_chunk_select_prompt(chunk_sets, cur_chunk_set_idx, candidates, pend
     gen_kb.add("down")(focus_next)
     gen_kb.add("up")(focus_previous)
 
-    @gen_kb.add("c-c")
     @gen_kb.add("c-q")
     def _(event):
         event.app.exit()
@@ -389,21 +405,32 @@ def generate_chunk_select_prompt(chunk_sets, cur_chunk_set_idx, candidates, pend
     def _(event):
         event.app.layout.focus(commit_msg_input)
 
-    @gen_kb.add("c-e")
+    @gen_kb.add("c-a")
     def _(event):
-        event.app.layout.focus(all_chunks[0])
+        if all_chunks:
+            event.app.layout.focus(all_chunks[0])
 
-    @gen_kb.add("c-r")
-    def _(event):
-        event.app.layout.focus(all_candidates[0])
-
-    @gen_kb.add("c-d")
+    @gen_kb.add("c-b")
     def _(event):
         event.app.layout.focus(diff_area)
 
-    @gen_kb.add("c-f")
+    @gen_kb.add("c-c")
+    def _(event):
+        if all_candidates:
+            event.app.layout.focus(all_candidates[0])
+
+    @gen_kb.add("c-d")
     def _(event):
         event.app.layout.focus(candidate_diff_area)
+
+    @gen_kb.add("c-e")
+    def _(event):
+        if all_pendings:
+            event.app.layout.focus(all_pendings[0])
+
+    @gen_kb.add("c-f")
+    def _(event):
+        event.app.layout.focus(pending_diff_area)
 
     @gen_kb.add("c-p")
     def _(event):
