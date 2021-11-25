@@ -1,7 +1,0 @@
-diff --git a/mypkg/parse_diff.py b/mypkg/parse_diff.py
---- a/mypkg/parse_diff.py
-+++ b/mypkg/parse_diff.py
-@@ -3,2 +3,3 @@ from argparse import ArgumentParser
- import sys
-+from enum import Enum, auto
-
