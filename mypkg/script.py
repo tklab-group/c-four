@@ -1,8 +1,7 @@
 from mypkg import operate_git
 import os
 from mypkg.db_settings import Base, engine, session
-from mypkg.random_chunk import split_list, generate_random_chunk_set, split_chunks_by_file
-from mypkg.intractive_module import yes_no_input
+from mypkg.split_chunks import split_chunks_by_file
 from mypkg.models.context import Context
 from mypkg.models.add_chunk import AddChunk
 from mypkg.models.remove_chunk import RemoveChunk
