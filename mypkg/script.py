@@ -6,9 +6,7 @@ from mypkg.models.context import Context
 from mypkg.models.add_chunk import AddChunk
 from mypkg.models.remove_chunk import RemoveChunk
 from mypkg.models.chunk_set import ChunkSet
-from prompt_toolkit import Application
-from mypkg.prompt import generate_chunk_select_prompt
-import itertools
+from mypkg.prompts.main_prompt import generate_main_screen
 from prompt_toolkit.shortcuts import yes_no_dialog
 
 def main():
@@ -46,7 +44,7 @@ def main():
             candidates = [chunk for chunk in all_chunks if chunk.context.path in path_sets and chunk.chunk_set_id != cur_chunk_set.id]
             pending_chunks = [chunk for chunk in all_chunks if chunk.chunk_set_id is None]
     
-            application = generate_chunk_select_prompt(chunk_sets, cur_chunk_set_idx, candidates, pending_chunks)
+            application = generate_main_screen(chunk_sets, cur_chunk_set_idx, candidates, pending_chunks)
             cur_chunk_set_idx = application.run()
             
         for chunk_set in chunk_sets:
