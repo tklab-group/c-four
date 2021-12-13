@@ -23,3 +23,18 @@ def generate_random_chunk_set(add_chunks, remove_chunks, split_num):
             for remove_chunk in remove_chunks_split.pop(0):
                 remove_chunk.chunk_set_id = chunk_set.id
             session.commit()
+
+def split_chunks_by_file(all_chunks):
+    appeared_paths = {}
+    
+    for chunk in all_chunks:
+        if chunk.context.path not in appeared_paths:
+            chunk_set = ChunkSet()
+            session.add(chunk_set)
+            session.commit()
+    
+            appeared_paths[chunk.context.path] = chunk_set.id
+            chunk.chunk_set_id = chunk_set.id
+        else:
+            chunk_set = ChunkSet.query.filter(ChunkSet.id == appeared_paths[chunk.context.path]).first()
+            chunk.chunk_set_id = chunk_set.id
