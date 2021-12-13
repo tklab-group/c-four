@@ -1,7 +1,7 @@
 from mypkg import operate_git
 import os
 from mypkg.db_settings import Base, engine, session
-from mypkg.random_chunk import split_list, generate_random_chunk_set
+from mypkg.random_chunk import split_list, generate_random_chunk_set, split_chunks_by_file
 from mypkg.intractive_module import yes_no_input
 from mypkg.models.context import Context
 from mypkg.models.add_chunk import AddChunk
@@ -31,7 +31,7 @@ def main():
         all_chunks.extend(all_add_chunks)
         all_chunks.extend(all_remove_chunks)
         
-        generate_random_chunk_set(all_add_chunks, all_remove_chunks, 2)
+        split_chunks_by_file(all_chunks)
         chunk_sets = ChunkSet.query.all()
         
         cur_chunk_set_idx = 0
