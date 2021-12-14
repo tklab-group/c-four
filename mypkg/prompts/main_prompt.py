@@ -155,6 +155,8 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, candidates, pending_chun
             ("page-num", "bg:#ffbf7f #000000"),
             ("candidates-label", "bg:#6395ed #000000"),
             ("pending-label", "bg:#2e8b57 #000000"),
+            ("add-line", "bg:#006600 #ffffff"),
+            ("remove-line", "bg:#880000 #ffffff"),
         ]
     )
     
