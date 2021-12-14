@@ -88,6 +88,52 @@ def generate_chunks_with_check_box(check_boxes, all_chunks):
     check_box_contents = [Box(body=check_box, style="class:check-box", width=CHECKBOXWIDTH) for check_box in check_boxes]
     return [VSplit([check_box_contents[i], all_chunks[i]]) for i in range(len(all_chunks))]
 
+def generate_main_chunk_components(add_chunks, remove_chunks):
+    diff_text = FormattedTextControl(focusable=True)
+    diff_area = Window(diff_text)
+    
+    check_boxes = [Label(text=" [*]") for i in range(len(add_chunks) + len(remove_chunks))]
+    state_list = [ChunkState.KEEP for i in range(len(add_chunks) + len(remove_chunks))]
+    all_chunks = generate_chunk_buffers(add_chunks, remove_chunks, diff_text, check_boxes, state_list)
+    chunk_with_check_boxes = generate_chunks_with_check_box(check_boxes, all_chunks)
+    
+    return diff_area, all_chunks, state_list, chunk_with_check_boxes
+
+def generate_chunk_with_diff_screen(chunk_with_check_boxes, diff_area):
+    check_box_label = generate_label("State", "class:check-box-label", CHECKBOXWIDTH)
+    chunk_set_label = generate_label("Chunk Sets", "class:chunk-set-label", D(weight=1))
+    
+    screen = VSplit(
+        [
+            HSplit(
+                [
+                    VSplit([check_box_label, chunk_set_label]),
+                    ScrollablePane(
+                        HSplit(
+                            chunk_with_check_boxes,
+                            width=D(max=30, weight=1),
+                            style="class:left-pane"
+                        )
+                    )
+                ]
+            ),
+            HSplit(
+                [
+                    Label(text="Diff", style="class:diff"),
+                    Box(
+                        body=Frame(ScrollablePane(diff_area)),
+                        padding=0,
+                        style='class:right-pane',
+                    ),
+                ],
+                width=D(weight=3),
+            ),
+        ],
+        height=D(),
+    )
+    
+    return screen
+
 # general content generators
 def generate_label(text, style, width):
     window = Window(
@@ -99,13 +145,9 @@ def generate_label(text, style, width):
     return window
 
 def generate_add_patch_with_style(chunk):
-    start_id, end_id = chunk.start_id, chunk.end_id
-    added_count = end_id - start_id + 1
-    a_start_id = b_start_id = start_id
-    a_line_num, b_line_num = 0, added_count
+    start_id = cur_line_num = chunk.start_id
     append_flag = False
     patch = []
-    cur_line_num = start_id
     
     for code_info in chunk.context.code_infos:
         if code_info.line_id == start_id - 1:
@@ -113,9 +155,6 @@ def generate_add_patch_with_style(chunk):
             cur_line_num = start_id - 1
             patch.append(('class:default-line', str(cur_line_num) + '| ' + code_info.code + '\n'))
             cur_line_num += 1
-            a_start_id = b_start_id = code_info.line_id
-            a_line_num += 1
-            b_line_num += 1
             for chunk_code in chunk.add_chunk_codes:
                 patch.append(('class:add-line', str(cur_line_num) + '|+' + chunk_code.code + '\n'))
                 cur_line_num += 1
@@ -126,17 +165,11 @@ def generate_add_patch_with_style(chunk):
                     cur_line_num += 1
             patch.append(('class:default-line', str(cur_line_num) + '| ' + code_info.code + '\n'))
             cur_line_num += 1
-            a_line_num += 1
-            b_line_num += 1
 
-    # patch.insert(0, ('class:default-line', '@@ -{0},{1} +{2},{3} @@\n'.format(a_start_id, a_line_num, b_start_id, b_line_num)))
     return FormattedText(patch)
 
 def generate_remove_patch_with_style(chunk):
     start_id, end_id = chunk.start_id, chunk.end_id
-    removed_count = end_id - start_id + 1
-    a_start_id = b_start_id = start_id
-    a_line_num, b_line_num = removed_count, 0
     patch = []
     cur_line_num = start_id
     
@@ -144,19 +177,13 @@ def generate_remove_patch_with_style(chunk):
         if code_info.line_id == start_id - 1:
             patch.append(('class:default-line', str(cur_line_num) + '| ' + code_info.code + '\n'))
             cur_line_num += 1
-            a_start_id = b_start_id = code_info.line_id
-            a_line_num += 1
-            b_line_num += 1
         elif start_id <= code_info.line_id <= end_id:
             patch.append(('class:remove-line', str(cur_line_num) + '|-' + code_info.code + '\n'))
             cur_line_num += 1
         elif code_info.line_id == end_id + 1:
             patch.append(('class:default-line', str(cur_line_num) + '| ' + code_info.code + '\n'))
             cur_line_num += 1
-            a_line_num += 1
-            b_line_num += 1
     
-    # patch.insert(0, ('class:default-line', '@@ -{0},{1} +{2},{3} @@\n'.format(a_start_id, a_line_num, b_start_id, b_line_num)))
     return FormattedText(patch)
 
 # candidate contents generators
@@ -214,41 +241,18 @@ def generate_candidate_buffers(candidates, text_area, check_boxes, candidate_sta
     
     return buffers
 
-def generate_chunk_with_diff_screen(chunk_with_check_boxes, diff_area):
-    check_box_label = generate_label("State", "class:check-box-label", CHECKBOXWIDTH)
-    chunk_set_label = generate_label("Chunk Sets", "class:chunk-set-label", D(weight=1))
+def generate_other_chunk_components(chunks):
+    diff_text = FormattedTextControl(focusable=True)
+    diff_area = Window(diff_text)
     
-    screen = VSplit(
-        [
-            HSplit(
-                [
-                    VSplit([check_box_label, chunk_set_label]),
-                    ScrollablePane(
-                        HSplit(
-                            chunk_with_check_boxes,
-                            width=D(max=30, weight=1),
-                            style="class:left-pane"
-                        )
-                    )
-                ]
-            ),
-            HSplit(
-                [
-                    Label(text="Diff", style="class:diff"),
-                    Box(
-                        body=Frame(ScrollablePane(diff_area)),
-                        padding=0,
-                        style='class:right-pane',
-                    ),
-                ],
-                width=D(weight=3),
-            ),
-        ],
-        height=D(),
-    )
+    check_boxes = [Label(text=" [ ]") for i in range(len(chunks))]
+    state_list = [ChunkState.KEEP for i in range(len(chunks))]
+    all_chunks = generate_candidate_buffers(chunks, diff_text, check_boxes, state_list)
+    chunk_with_check_boxes = generate_chunks_with_check_box(check_boxes, all_chunks)
     
-    return screen
+    return diff_area, all_chunks, state_list, chunk_with_check_boxes
 
+#other components
 def generate_screen_title_label(text, style):
     screen = VSplit(
         [
@@ -277,25 +281,3 @@ def generate_move_button(label, focusable, kb, style):
     )
     
     return button
-
-def generate_main_chunk_components(add_chunks, remove_chunks):
-    diff_text = FormattedTextControl(focusable=True)
-    diff_area = Window(diff_text)
-    
-    check_boxes = [Label(text=" [*]") for i in range(len(add_chunks) + len(remove_chunks))]
-    state_list = [ChunkState.KEEP for i in range(len(add_chunks) + len(remove_chunks))]
-    all_chunks = generate_chunk_buffers(add_chunks, remove_chunks, diff_text, check_boxes, state_list)
-    chunk_with_check_boxes = generate_chunks_with_check_box(check_boxes, all_chunks)
-    
-    return diff_area, all_chunks, state_list, chunk_with_check_boxes
-
-def generate_other_chunk_components(chunks):
-    diff_text = FormattedTextControl(focusable=True)
-    diff_area = Window(diff_text)
-    
-    check_boxes = [Label(text=" [ ]") for i in range(len(chunks))]
-    state_list = [ChunkState.KEEP for i in range(len(chunks))]
-    all_chunks = generate_candidate_buffers(chunks, diff_text, check_boxes, state_list)
-    chunk_with_check_boxes = generate_chunks_with_check_box(check_boxes, all_chunks)
-    
-    return diff_area, all_chunks, state_list, chunk_with_check_boxes

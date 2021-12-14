@@ -5,18 +5,7 @@ from prompt_toolkit.widgets import Label, TextArea
 from prompt_toolkit.styles import Style
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.key_binding.bindings.focus import focus_next, focus_previous
-from functools import partial
-from enum import Enum, auto
-from mypkg.prompts.components import generate_main_chunk_components, generate_screen_title_label, generate_chunk_with_diff_screen, generate_move_button, generate_other_chunk_components
-
-class ChunkState(Enum):
-    KEEP = auto()
-    NEXT = auto()
-    PREV = auto()
-    PENDING = auto()
-    ASSIGN = auto()
-
-CHECKBOXWIDTH = 7
+from mypkg.prompts.components import generate_main_chunk_components, generate_screen_title_label, generate_chunk_with_diff_screen, generate_move_button, generate_other_chunk_components, ChunkState
 
 def generate_main_screen(chunk_sets, cur_chunk_set_idx, candidates, pending_chunks):
     #main chunks components
@@ -98,7 +87,7 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, candidates, pending_chun
     def _(event):
         common_exit_process()
         event.app.exit(result=cur_chunk_set_idx + 1)
-
+        
     if is_not_first:
         prev_chunk_button_style = "class:prev-chunk-button-normal"
         prev_button_label = "Prev Chunks"
