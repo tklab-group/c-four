@@ -41,10 +41,10 @@ def main():
             cur_chunks.extend(cur_chunk_set.remove_chunks)
             path_sets = {chunk.context.path for chunk in cur_chunks}
             
-            candidates = [chunk for chunk in all_chunks if chunk.context.path in path_sets and chunk.chunk_set_id != cur_chunk_set.id]
+            related_chunks = [chunk for chunk in all_chunks if chunk.context.path in path_sets and chunk.chunk_set_id != cur_chunk_set.id]
             pending_chunks = [chunk for chunk in all_chunks if chunk.chunk_set_id is None]
     
-            application = generate_main_screen(chunk_sets, cur_chunk_set_idx, candidates, pending_chunks)
+            application = generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks, pending_chunks)
             cur_chunk_set_idx = application.run()
             
         for chunk_set in chunk_sets:

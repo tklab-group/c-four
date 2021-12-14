@@ -7,16 +7,16 @@ from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.key_binding.bindings.focus import focus_next, focus_previous
 from mypkg.prompts.components import generate_main_chunk_components, generate_screen_title_label, generate_chunk_with_diff_screen, generate_move_button, generate_other_chunk_components, ChunkState
 
-def generate_main_screen(chunk_sets, cur_chunk_set_idx, candidates, pending_chunks):
+def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks, pending_chunks):
     #main chunks components
     chunk_set = chunk_sets[cur_chunk_set_idx]
 
     add_chunks, remove_chunks = chunk_set.add_chunks, chunk_set.remove_chunks
     diff_area, all_chunks, chunk_state_list, chunk_with_check_boxes = generate_main_chunk_components(add_chunks, remove_chunks)
 
-    #candidate and pending chunks components
-    candidate_diff_area, all_candidates, candidate_state_list, candidate_with_check_boxes = generate_other_chunk_components(candidates)
-    pending_diff_area, all_pendings, pending_state_list, pending_with_check_boxes = generate_other_chunk_components(pending_chunks)
+    #related and pending chunks components
+    related_diff_area, all_related_chunks, related_state_list, related_with_check_boxes = generate_other_chunk_components(related_chunks)
+    pending_diff_area, all_pending_chunks, pending_state_list, pending_with_check_boxes = generate_other_chunk_components(pending_chunks)
     
     # commit message input field
     commit_msg_input = TextArea(
@@ -73,7 +73,7 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, candidates, pending_chun
 
     def common_exit_process():
         commit_staged_chunks()
-        assign_selected_chunks(candidates, candidate_state_list)
+        assign_selected_chunks(related_chunks, related_state_list)
         assign_selected_chunks(pending_chunks, pending_state_list)
 
     prev_chunk_kb, next_chunk_kb = KeyBindings(), KeyBindings()
@@ -110,8 +110,8 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, candidates, pending_chun
             Label(text="Press `Enter` to show diff, press 'a' to include the chunk to this chunk set, press 'd' to put on pending status,\npress 'p' to move the chunk to previous chunk set, and press 'n' to move the chunk to next chunk set."),
             generate_screen_title_label("Suggested Chunk Sets({} chunks) (Page: {} / {})".format(len(all_chunks), cur_chunk_set_idx + 1, len(chunk_sets)), "class:page-num"),
             generate_chunk_with_diff_screen(chunk_with_check_boxes, diff_area),
-            generate_screen_title_label("Candidate Chunks({} chunks)".format(len(candidates)), "class:candidates-label"),
-            generate_chunk_with_diff_screen(candidate_with_check_boxes, candidate_diff_area),
+            generate_screen_title_label("Related Chunks({} chunks)".format(len(related_chunks)), "class:related-label"),
+            generate_chunk_with_diff_screen(related_with_check_boxes, related_diff_area),
             generate_screen_title_label("Pending Chunks({} chunks)".format(len(pending_chunks)), "class:pending-label"),
             generate_chunk_with_diff_screen(pending_with_check_boxes, pending_diff_area),
             commit_msg_input,
@@ -142,7 +142,7 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, candidates, pending_chun
             ("next-chunk-button-last", "bg:#00bfff #ffff00 bold"),
             ("next-chunk-button-normal", "bg:#00bfff #ffffff"),
             ("page-num", "bg:#ffbf7f #000000"),
-            ("candidates-label", "bg:#6395ed #000000"),
+            ("related-label", "bg:#6395ed #000000"),
             ("pending-label", "bg:#2e8b57 #000000"),
             ("add-line", "bg:#006600 #ffffff"),
             ("remove-line", "bg:#880000 #ffffff"),
@@ -173,17 +173,17 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, candidates, pending_chun
 
     @gen_kb.add("c-c")
     def _(event):
-        if all_candidates:
-            event.app.layout.focus(all_candidates[0])
+        if all_related_chunks:
+            event.app.layout.focus(all_related_chunks[0])
 
     @gen_kb.add("c-d")
     def _(event):
-        event.app.layout.focus(candidate_diff_area)
+        event.app.layout.focus(related_diff_area)
 
     @gen_kb.add("c-e")
     def _(event):
-        if all_pendings:
-            event.app.layout.focus(all_pendings[0])
+        if all_pending_chunks:
+            event.app.layout.focus(all_pending_chunks[0])
 
     @gen_kb.add("c-f")
     def _(event):
