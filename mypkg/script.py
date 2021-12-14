@@ -63,8 +63,8 @@ def main():
     
         if other_chunks:
             result = yes_no_dialog(
-                title="Confirmation of continuation",
-                text="There is still {} pending chunks.\nDo you want to continue splitting?".format(len(other_chunks))
+                title="Confirm staging of pending chunks",
+                text="There is still {} pending chunks.\nDo you want to stage these chunks?".format(len(other_chunks))
             ).run()
             
             if not result:
