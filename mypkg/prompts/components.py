@@ -9,6 +9,7 @@ from prompt_toolkit.document import Document
 from functools import partial
 from mypkg.models.add_chunk import AddChunk
 from enum import Enum, auto
+from prompt_toolkit.formatted_text import FormattedText
 
 class ChunkState(Enum):
     KEEP = auto()
@@ -74,11 +75,11 @@ def generate_chunk_buffers(add_chunks, remove_chunks, text_area, check_boxes, ch
     index = 0
     for add_chunk in add_chunks:
         buffer_text = '{} \n({}, {})'.format(add_chunk.context.path, add_chunk.start_id, add_chunk.end_id)
-        buffers.append(generate_buffer_window(buffer_text, text_area, add_chunk.generate_add_patch(), "class:add-chunk", check_boxes[index], chunk_state_list, index))
+        buffers.append(generate_buffer_window(buffer_text, text_area, generate_add_patch_with_style(add_chunk), "class:add-chunk", check_boxes[index], chunk_state_list, index))
         index += 1
     for remove_chunk in remove_chunks:
         buffer_text = '{} \n({}, {})'.format(remove_chunk.context.path, remove_chunk.start_id, remove_chunk.end_id)
-        buffers.append(generate_buffer_window(buffer_text, text_area, remove_chunk.generate_remove_patch(), "class:remove-chunk", check_boxes[index], chunk_state_list, index))
+        buffers.append(generate_buffer_window(buffer_text, text_area, generate_remove_patch_with_style(remove_chunk), "class:remove-chunk", check_boxes[index], chunk_state_list, index))
         index += 1
     
     return buffers
@@ -96,6 +97,67 @@ def generate_label(text, style, width):
         style=style,
     )
     return window
+
+def generate_add_patch_with_style(chunk):
+    start_id, end_id = chunk.start_id, chunk.end_id
+    added_count = end_id - start_id + 1
+    a_start_id = b_start_id = start_id
+    a_line_num, b_line_num = 0, added_count
+    append_flag = False
+    patch = []
+    cur_line_num = start_id
+    
+    for code_info in chunk.context.code_infos:
+        if code_info.line_id == start_id - 1:
+            append_flag = True
+            cur_line_num = start_id - 1
+            patch.append(('class:default-line', str(cur_line_num) + '| ' + code_info.code + '\n'))
+            cur_line_num += 1
+            a_start_id = b_start_id = code_info.line_id
+            a_line_num += 1
+            b_line_num += 1
+            for chunk_code in chunk.add_chunk_codes:
+                patch.append(('class:add-line', str(cur_line_num) + '|+' + chunk_code.code + '\n'))
+                cur_line_num += 1
+        elif code_info.line_id == start_id:
+            if not append_flag:
+                for chunk_code in chunk.add_chunk_codes:
+                    patch.append(('class:add-line', str(cur_line_num) + '|+' + chunk_code.code + '\n'))
+                    cur_line_num += 1
+            patch.append(('class:default-line', str(cur_line_num) + '| ' + code_info.code + '\n'))
+            cur_line_num += 1
+            a_line_num += 1
+            b_line_num += 1
+
+    # patch.insert(0, ('class:default-line', '@@ -{0},{1} +{2},{3} @@\n'.format(a_start_id, a_line_num, b_start_id, b_line_num)))
+    return FormattedText(patch)
+
+def generate_remove_patch_with_style(chunk):
+    start_id, end_id = chunk.start_id, chunk.end_id
+    removed_count = end_id - start_id + 1
+    a_start_id = b_start_id = start_id
+    a_line_num, b_line_num = removed_count, 0
+    patch = []
+    cur_line_num = start_id
+    
+    for code_info in chunk.context.code_infos:
+        if code_info.line_id == start_id - 1:
+            patch.append(('class:default-line', str(cur_line_num) + '| ' + code_info.code + '\n'))
+            cur_line_num += 1
+            a_start_id = b_start_id = code_info.line_id
+            a_line_num += 1
+            b_line_num += 1
+        elif start_id <= code_info.line_id <= end_id:
+            patch.append(('class:remove-line', str(cur_line_num) + '|-' + code_info.code + '\n'))
+            cur_line_num += 1
+        elif code_info.line_id == end_id + 1:
+            patch.append(('class:default-line', str(cur_line_num) + '| ' + code_info.code + '\n'))
+            cur_line_num += 1
+            a_line_num += 1
+            b_line_num += 1
+    
+    # patch.insert(0, ('class:default-line', '@@ -{0},{1} +{2},{3} @@\n'.format(a_start_id, a_line_num, b_start_id, b_line_num)))
+    return FormattedText(patch)
 
 # candidate contents generators
 def generate_candidate_key_bindings(text_area, patch, check_box, candidate_state_list, index):
@@ -145,9 +207,9 @@ def generate_candidate_buffers(candidates, text_area, check_boxes, candidate_sta
             buffer_text += 'Pending'
         
         if isinstance(candidate, AddChunk):
-            buffers.append(generate_candidate_window(buffer_text, text_area, candidate.generate_add_patch(), "class:add-chunk", check_boxes[index], candidate_state_list, index))
+            buffers.append(generate_candidate_window(buffer_text, text_area, generate_add_patch_with_style(candidate), "class:add-chunk", check_boxes[index], candidate_state_list, index))
         else:
-            buffers.append(generate_candidate_window(buffer_text, text_area, candidate.generate_remove_patch(), "class:remove-chunk", check_boxes[index], candidate_state_list, index))
+            buffers.append(generate_candidate_window(buffer_text, text_area, generate_remove_patch_with_style(candidate), "class:remove-chunk", check_boxes[index], candidate_state_list, index))
         index += 1
     
     return buffers
