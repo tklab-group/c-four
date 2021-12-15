@@ -57,8 +57,6 @@ class RemoveChunk(Base):
         removed_count = end_id - start_id + 1
         context = self.context
 
-        context.code_infos = [c for c in context.code_infos if not start_id <= c.line_id <= end_id]
-        
         for code_info in context.code_infos:
             if start_id <= code_info.line_id <= end_id:
                 CodeInfo.query.filter(CodeInfo.id == code_info.id).delete()
