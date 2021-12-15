@@ -3,6 +3,15 @@ from sqlalchemy.schema import Column
 from mypkg.db_settings import Base
 from sqlalchemy.orm import relationship
 from mypkg.make_patch import generate_full_patch
+from mypkg.models.code_info import CodeInfo
+from mypkg.db_settings import Base, session
+
+def increment_line_id(count, start_id, chunks):
+    for chunk in chunks:
+        if chunk.start_id > start_id:
+            chunk.start_id += count
+            chunk.end_id += count
+            session.commit()
 
 class AddChunk(Base):
     __tablename__ = 'add_chunk'
@@ -45,3 +54,23 @@ class AddChunk(Base):
     
         patch_code = '@@ -{0},{1} +{2},{3} @@\n'.format(a_start_id, a_line_num, b_start_id, b_line_num) + patch_code
         return generate_full_patch(self.context.path, patch_code)
+    
+    def reflect_staged_diffs(self):
+        start_id, end_id = self.start_id, self.end_id
+        added_count = end_id - start_id + 1
+        context = self.context
+        line_id = start_id
+
+        for code_info in context.code_infos:
+            if code_info.line_id >= start_id:
+                code_info.line_id += added_count
+                session.commit()
+
+        for code in self.add_chunk_codes:
+            code_info = CodeInfo(line_id, code.code, context.id)
+            session.add(code_info)
+            session.commit()
+            line_id += 1
+    
+        increment_line_id(added_count, start_id, context.add_chunks)
+        increment_line_id(added_count, start_id, context.remove_chunks)
