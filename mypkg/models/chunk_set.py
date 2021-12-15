@@ -17,6 +17,9 @@ class ChunkSet(Base):
         self.message = ''
         
     def commit_self_chunks(self, repo):
+        if not self.add_chunks and not self.remove_chunks:
+            return None
+        
         for add_chunk in self.add_chunks:
             patch = add_chunk.generate_add_patch()
             apply_patch(repo, patch)
