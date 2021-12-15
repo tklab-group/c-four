@@ -5,7 +5,7 @@ def get_repo(path):
     return Repo(path)
 
 def get_diffs(repo):
-    return repo.head.commit.diff(None, create_patch=True).iter_change_type('M')
+    return repo.index.diff(None, create_patch=True).iter_change_type('M')
 
 def apply_patch(repo, patch):
     with tempfile.NamedTemporaryFile(mode='w+') as tf:
