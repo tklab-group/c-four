@@ -34,6 +34,7 @@ def main():
         cur_chunk_set_idx = 0
         chunk_sets_size = len(chunk_sets)
         
+        #Start and run application
         while cur_chunk_set_idx < chunk_sets_size:
             cur_chunks = []
             cur_chunk_set = chunk_sets[cur_chunk_set_idx]
@@ -47,6 +48,10 @@ def main():
             application = generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks, pending_chunks)
             cur_chunk_set_idx = application.run()
             
+        # stage and commit current chunk sets
+        for chunk_set in chunk_sets:
+            chunk_set.commit_self_chunks(repo)
+        
         for chunk_set in chunk_sets:
             for add_chunk in chunk_set.add_chunks:
                 AddChunk.query.filter(AddChunk.id == add_chunk.id).delete()
@@ -72,6 +77,5 @@ def main():
         else:
             break
         
-
 if __name__ == '__main__':
     main()

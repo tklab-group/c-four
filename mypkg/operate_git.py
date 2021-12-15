@@ -13,5 +13,5 @@ def apply_patch(repo, patch):
         tf.seek(0)
         repo.git.apply(['--cached', tf.name])
         
-def auto_commit(repo, path, start_id, end_id):
-    repo.git.commit('-m', '{0}: ({1},{2})'.format(path, start_id, end_id))
+def commit_cur_staging(repo, message):
+    repo.git.commit('-m', message)
