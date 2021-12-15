@@ -175,6 +175,7 @@ def generate_remove_patch_with_style(chunk):
     
     for code_info in chunk.context.code_infos:
         if code_info.line_id == start_id - 1:
+            cur_line_num = start_id - 1
             patch.append(('class:default-line', str(cur_line_num) + '| ' + code_info.code + '\n'))
             cur_line_num += 1
         elif start_id <= code_info.line_id <= end_id:
