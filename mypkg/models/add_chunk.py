@@ -67,7 +67,7 @@ class AddChunk(Base):
                 session.commit()
 
         for code in self.add_chunk_codes:
-            code_info = CodeInfo(line_id, code.code + '\n', context.id)
+            code_info = CodeInfo(line_id, code.code, context.id)
             session.add(code_info)
             session.commit()
             line_id += 1
