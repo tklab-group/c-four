@@ -146,7 +146,8 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks, pending_
             ("pending-label", "bg:#2e8b57 #000000"),
             ("add-line", "bg:#006600 #ffffff"),
             ("remove-line", "bg:#880000 #ffffff"),
-            ("label-back", "bg:#C4C4C4 #ffffff")
+            ("label-back", "bg:#C4C4C4 #ffffff"),
+            ("patch-label", "bg:#454545 #ffffff"),
         ]
     )
     

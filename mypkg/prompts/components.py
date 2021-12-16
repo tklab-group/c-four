@@ -145,7 +145,10 @@ def generate_label(text, style, width):
     return window
 
 def generate_add_patch_with_style(chunk):
-    start_id = cur_line_num = chunk.start_id
+    start_id, end_id = cur_line_num = chunk.start_id, chunk.end_id
+    added_count = end_id - start_id + 1
+    a_start_id = b_start_id = start_id
+    a_line_num, b_line_num = 0, added_count
     append_flag = False
     patch = []
     
@@ -154,6 +157,8 @@ def generate_add_patch_with_style(chunk):
             append_flag = True
             cur_line_num = start_id - 1
             patch.append(('class:default-line', str(cur_line_num) + '| ' + code_info.code + '\n'))
+            a_line_num += 1
+            b_line_num += 1
             cur_line_num += 1
             for chunk_code in chunk.add_chunk_codes:
                 patch.append(('class:add-line', str(cur_line_num) + '|+' + chunk_code.code + '\n'))
@@ -165,11 +170,17 @@ def generate_add_patch_with_style(chunk):
                     cur_line_num += 1
             patch.append(('class:default-line', str(cur_line_num) + '| ' + code_info.code + '\n'))
             cur_line_num += 1
+            a_line_num += 1
+            b_line_num += 1
 
+    patch.insert(0, ('class:patch-label', '@@ -{0},{1} +{2},{3} @@ {4}\n'.format(a_start_id, a_line_num, b_start_id, b_line_num, chunk.context.path)))
     return FormattedText(patch)
 
 def generate_remove_patch_with_style(chunk):
     start_id, end_id = chunk.start_id, chunk.end_id
+    removed_count = end_id - start_id + 1
+    a_start_id = b_start_id = start_id
+    a_line_num, b_line_num = removed_count, 0
     patch = []
     cur_line_num = start_id
     
@@ -178,13 +189,19 @@ def generate_remove_patch_with_style(chunk):
             cur_line_num = start_id - 1
             patch.append(('class:default-line', str(cur_line_num) + '| ' + code_info.code + '\n'))
             cur_line_num += 1
+            a_start_id = b_start_id = code_info.line_id
+            a_line_num += 1
+            b_line_num += 1
         elif start_id <= code_info.line_id <= end_id:
             patch.append(('class:remove-line', str(cur_line_num) + '|-' + code_info.code + '\n'))
             cur_line_num += 1
         elif code_info.line_id == end_id + 1:
             patch.append(('class:default-line', str(cur_line_num) + '| ' + code_info.code + '\n'))
             cur_line_num += 1
+            a_line_num += 1
+            b_line_num += 1
     
+    patch.insert(0, ('class:patch-label', '@@ -{0},{1} +{2},{3} @@ {4}\n'.format(a_start_id, a_line_num, b_start_id, b_line_num, chunk.context.path)))
     return FormattedText(patch)
 
 # candidate contents generators
