@@ -257,11 +257,11 @@ def generate_other_chunk_components(chunks):
 def generate_screen_title_label(text, style):
     screen = VSplit(
         [
-            Window(DummyControl()),
-            Window(DummyControl()),
+            Window(DummyControl(), style='class:label-back'),
+            Window(DummyControl(), style='class:label-back'),
             Label(text=text, style=style),
-            Window(DummyControl()),
-            Window(DummyControl()),
+            Window(DummyControl(), style='class:label-back'),
+            Window(DummyControl(), style='class:label-back'),
         ]
     )
     
