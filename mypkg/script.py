@@ -20,6 +20,7 @@ def main():
         session.add(context)
         session.commit()
         context.convert_diff_to_chunk(diff.diff.decode())
+        print(diff.diff.decode())
 
     while True:
         all_chunks = []
