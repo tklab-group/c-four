@@ -155,7 +155,7 @@ def generate_add_patch_with_style(chunk):
     
     context_codes = CodeInfo.query.filter(CodeInfo.context_id == chunk.context_id, start_id <= CodeInfo.line_id, CodeInfo.line_id <= end_id)
     other_add_chunks = AddChunk.query.filter(start_id <= AddChunk.start_id, AddChunk.start_id <= end_id, AddChunk.id != chunk.id, AddChunk.context_id == chunk.context_id)
-    other_remove_chunks = RemoveChunk.query.filter(start_id <= RemoveChunk.start_id, RemoveChunk.start_id <= end_id, RemoveChunk.id != chunk.id, RemoveChunk.context_id == chunk.context_id)
+    other_remove_chunks = RemoveChunk.query.filter(start_id <= RemoveChunk.start_id, RemoveChunk.start_id <= end_id, RemoveChunk.context_id == chunk.context_id)
     other_add_chunk_dict = {c.start_id: c.add_chunk_codes for c in other_add_chunks}
     other_remove_chunk_line_ids = set()
     for other_remove_chunk in other_remove_chunks:
@@ -174,45 +174,59 @@ def generate_add_patch_with_style(chunk):
 
         if line_id in other_add_chunk_dict.keys():
             add_chunk_codes = other_add_chunk_dict[line_id]
+            added_count = 0
             for add_chunk_code in add_chunk_codes:
-                patch.append(('class:other-add-line', str(line_id) + '|+' + add_chunk_code.code + '\n'))
+                patch.append(('class:other-add-line', str(line_id + added_count) + '|+' + add_chunk_code.code + '\n'))
                 b_line_num += 1
+                added_count += 1
         
         if line_id in other_remove_chunk_line_ids:
             patch.append(('class:other-remove-line', str(line_id) + '|-' + context_code.code + '\n'))
-            a_line_num += 1
         else:
             patch.append(('class:default-line', str(line_id) + '| ' + context_code.code + '\n'))
-            a_line_num += 1
             b_line_num += 1
+        a_line_num += 1
     
     patch.insert(0, ('class:patch-label', '@@ -{0},{1} +{2},{3} @@ {4}\n'.format(a_start_id, a_line_num, b_start_id, b_line_num, chunk.context.path)))
     return FormattedText(patch)
 
 def generate_remove_patch_with_style(chunk):
-    start_id, end_id = chunk.start_id, chunk.end_id
-    removed_count = end_id - start_id + 1
+    start_id, end_id = chunk.start_id - 3, chunk.end_id + 3
     a_start_id = b_start_id = start_id
-    a_line_num, b_line_num = removed_count, 0
+    a_line_num = b_line_num = 0
     patch = []
-    cur_line_num = start_id
+    target_remove_chunk_line_ids = set()
+    for line_id in range(chunk.start_id, chunk.end_id + 1):
+        target_remove_chunk_line_ids.add(line_id)
     
-    for code_info in chunk.context.code_infos:
-        if code_info.line_id == start_id - 1:
-            cur_line_num = start_id - 1
-            patch.append(('class:default-line', str(cur_line_num) + '| ' + code_info.code + '\n'))
-            cur_line_num += 1
-            a_start_id = b_start_id = code_info.line_id
-            a_line_num += 1
+    context_codes = CodeInfo.query.filter(CodeInfo.context_id == chunk.context_id, start_id <= CodeInfo.line_id, CodeInfo.line_id <= end_id)
+    other_add_chunks = AddChunk.query.filter(start_id <= AddChunk.start_id, AddChunk.start_id <= end_id, AddChunk.context_id == chunk.context_id)
+    other_remove_chunks = RemoveChunk.query.filter(start_id <= RemoveChunk.start_id, RemoveChunk.start_id <= end_id, RemoveChunk.id != chunk.id, RemoveChunk.context_id == chunk.context_id)
+    other_add_chunk_dict = {c.start_id: c.add_chunk_codes for c in other_add_chunks}
+    other_remove_chunk_line_ids = set()
+    for other_remove_chunk in other_remove_chunks:
+        for line_id in range(other_remove_chunk.start_id, other_remove_chunk.end_id + 1):
+            other_remove_chunk_line_ids.add(line_id)
+    
+    for context_code in context_codes:
+        line_id = context_code.line_id
+        
+        if line_id in other_add_chunk_dict.keys():
+            add_chunk_codes = other_add_chunk_dict[line_id]
+            added_count = 0
+            for add_chunk_code in add_chunk_codes:
+                patch.append(('class:other-add-line', str(line_id + added_count) + '|+' + add_chunk_code.code + '\n'))
+                b_line_num += 1
+                added_count += 1
+                
+        if line_id in target_remove_chunk_line_ids:
+            patch.append(('class:target-remove-line', str(line_id) + '|-' + context_code.code + '\n'))
+        elif line_id in other_remove_chunk_line_ids:
+            patch.append(('class:other-remove-line', str(line_id) + '|-' + context_code.code + '\n'))
+        else:
+            patch.append(('class:default-line', str(line_id) + '| ' + context_code.code + '\n'))
             b_line_num += 1
-        elif start_id <= code_info.line_id <= end_id:
-            patch.append(('class:remove-line', str(cur_line_num) + '|-' + code_info.code + '\n'))
-            cur_line_num += 1
-        elif code_info.line_id == end_id + 1:
-            patch.append(('class:default-line', str(cur_line_num) + '| ' + code_info.code + '\n'))
-            cur_line_num += 1
-            a_line_num += 1
-            b_line_num += 1
+        a_line_num += 1
     
     patch.insert(0, ('class:patch-label', '@@ -{0},{1} +{2},{3} @@ {4}\n'.format(a_start_id, a_line_num, b_start_id, b_line_num, chunk.context.path)))
     return FormattedText(patch)
