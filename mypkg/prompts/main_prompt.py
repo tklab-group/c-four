@@ -133,8 +133,8 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks, pending_
             ("remove-chunk", "bg:#880000 #ffffff"),
             ("chunk-sets", "bg:#454545 #ffffff"),
             ("check-box", "bg:#151515 #ffffff"),
-            ("chunk-set-label", "bg:#C6B1B1 #000000"),
-            ("check-box-label", "bg:#D8EAEA #000000"),
+            ("chunk-set-label", "bg:#4F7DA7 #000000"),
+            ("check-box-label", "bg:#163360 #000000"),
             ("diff", "bg:#000000 #006600"),
             ("commit-message", "bg:#001177 #ffffff"),
             ("prev-chunk-button-first", "bg:#b22222 #454545"),
@@ -144,8 +144,12 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks, pending_
             ("page-num", "bg:#ffbf7f #000000"),
             ("related-label", "bg:#6395ed #000000"),
             ("pending-label", "bg:#2e8b57 #000000"),
-            ("add-line", "bg:#006600 #ffffff"),
-            ("remove-line", "bg:#880000 #ffffff"),
+            ("target-add-line", "bg:#043F04 #ffffff"),
+            ("target-remove-line", "bg:#880000 #ffffff"),
+            ("other-add-line", "bg:#7C9F7C #ffffff"),
+            ("other-remove-line", "bg:#C98F8F #ffffff"),
+            ("label-back", "bg:#C4C4C4 #ffffff"),
+            ("patch-label", "bg:#454545 #ffffff"),
         ]
     )
     
