@@ -194,4 +194,3 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
     layout = Layout(container=root_container, focused_element=next_chunk_button)
     application = Application(layout=layout, key_bindings=gen_kb, style=style, full_screen=True, mouse_support=True)
     return application
-    # hello
