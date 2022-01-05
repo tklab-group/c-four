@@ -45,8 +45,10 @@ def main():
             
             related_chunks = [chunk for chunk in all_chunks if chunk.context.path in path_sets and chunk.chunk_set_id != cur_chunk_set.id]
             pending_chunks = [chunk for chunk in all_chunks if chunk.chunk_set_id is None]
+            related_chunks.extend(pending_chunks)
+            related_chunks = list(set(related_chunks))
     
-            application = generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks, pending_chunks)
+            application = generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks)
             cur_chunk_set_idx = application.run()
             
         # stage and commit current chunk sets
