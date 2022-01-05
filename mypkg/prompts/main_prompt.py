@@ -7,7 +7,7 @@ from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.key_binding.bindings.focus import focus_next, focus_previous
 from mypkg.prompts.components import generate_main_chunk_components, generate_screen_title_label, generate_chunk_with_diff_screen, generate_move_button, generate_other_chunk_components, ChunkState
 
-def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks, pending_chunks):
+def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
     #main chunks components
     chunk_set = chunk_sets[cur_chunk_set_idx]
 
@@ -16,7 +16,6 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks, pending_
 
     #related and pending chunks components
     related_diff_area, all_related_chunks, related_state_list, related_with_check_boxes = generate_other_chunk_components(related_chunks)
-    pending_diff_area, all_pending_chunks, pending_state_list, pending_with_check_boxes = generate_other_chunk_components(pending_chunks)
     
     # commit message input field
     commit_msg_input = TextArea(
@@ -74,7 +73,6 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks, pending_
     def common_exit_process():
         commit_staged_chunks()
         assign_selected_chunks(related_chunks, related_state_list)
-        assign_selected_chunks(pending_chunks, pending_state_list)
 
     prev_chunk_kb, next_chunk_kb = KeyBindings(), KeyBindings()
 
@@ -112,8 +110,6 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks, pending_
             generate_chunk_with_diff_screen(chunk_with_check_boxes, diff_area),
             generate_screen_title_label("Related Chunks({} chunks)".format(len(related_chunks)), "class:related-label"),
             generate_chunk_with_diff_screen(related_with_check_boxes, related_diff_area),
-            generate_screen_title_label("Pending Chunks({} chunks)".format(len(pending_chunks)), "class:pending-label"),
-            generate_chunk_with_diff_screen(pending_with_check_boxes, pending_diff_area),
             commit_msg_input,
             VSplit(
                 [
@@ -183,15 +179,6 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks, pending_
     @gen_kb.add("c-d")
     def _(event):
         event.app.layout.focus(related_diff_area)
-
-    @gen_kb.add("c-e")
-    def _(event):
-        if all_pending_chunks:
-            event.app.layout.focus(all_pending_chunks[0])
-
-    @gen_kb.add("c-f")
-    def _(event):
-        event.app.layout.focus(pending_diff_area)
 
     @gen_kb.add("c-p")
     def _(event):

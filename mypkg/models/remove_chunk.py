@@ -10,11 +10,6 @@ def decrement_line_id(count, end_id, chunks):
             chunk.start_id -= count
             chunk.end_id -= count
             session.commit()
-    
-    for index, chunk in enumerate(chunks):
-        if chunk.start_id > end_id:
-            chunks[index].start_id -= count
-            chunks[index].end_id -= count
             
 class RemoveChunk(Base):
     __tablename__ = 'remove_chunk'
