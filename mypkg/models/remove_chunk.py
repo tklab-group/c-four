@@ -23,6 +23,7 @@ class RemoveChunk(Base):
         self.start_id = start_id
         self.end_id = end_id
         self.context_id = context_id
+        self.chunk_set_id = chunk_set_id
 
     def generate_remove_patch(self):
         start_id, end_id = self.start_id, self.end_id
