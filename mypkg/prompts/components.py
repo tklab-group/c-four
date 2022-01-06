@@ -291,7 +291,7 @@ def generate_candidate_buffers(candidates, text_area, check_boxes, candidate_sta
     for candidate in candidates:
         buffer_text = '{} \n({}, {})\n'.format(candidate.context.path, candidate.start_id, candidate.end_id)
         if candidate.chunk_set_id is not None:
-            buffer_text += 'Page: {}'.format(candidate.chunk_set_id)
+            buffer_text += 'Related(Page: {})'.format(candidate.chunk_set_id)
         else:
             buffer_text += 'Pending'
         
