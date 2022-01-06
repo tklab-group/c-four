@@ -162,9 +162,10 @@ def generate_add_patch_with_style(chunk):
         for line_id in range(other_remove_chunk.start_id, other_remove_chunk.end_id + 1):
             other_remove_chunk_line_ids.add(line_id)
     
+    last_line_id = 0
     for context_code in context_codes:
-        line_id = context_code.line_id
-
+        line_id = last_line_id = context_code.line_id
+        
         if line_id == chunk.start_id:
             added_count = 0
             for code in chunk.add_chunk_codes:
@@ -186,6 +187,22 @@ def generate_add_patch_with_style(chunk):
             patch.append(('class:default-line', str(line_id) + '| ' + context_code.code + '\n'))
             b_line_num += 1
         a_line_num += 1
+
+    last_line_id += 1
+    if last_line_id == chunk.start_id:
+        added_count = 0
+        for code in chunk.add_chunk_codes:
+            patch.append(('class:target-add-line', str(last_line_id + added_count) + '|+' + code.code + '\n'))
+            b_line_num += 1
+            added_count += 1
+
+    if last_line_id in other_add_chunk_dict.keys():
+        add_chunk_codes = other_add_chunk_dict[last_line_id]
+        added_count = 0
+        for add_chunk_code in add_chunk_codes:
+            patch.append(('class:other-add-line', str(last_line_id + added_count) + '|+' + add_chunk_code.code + '\n'))
+            b_line_num += 1
+            added_count += 1
     
     patch.insert(0, ('class:patch-label', '@@ -{0},{1} +{2},{3} @@ {4}\n'.format(a_start_id, a_line_num, b_start_id, b_line_num, chunk.context.path)))
     return FormattedText(patch)
