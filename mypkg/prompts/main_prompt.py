@@ -109,7 +109,7 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
             Label(text="Press `Enter` to show diff, press 'a' to include the chunk to this chunk set, press 'd' to put on pending status,\npress 'p' to move the chunk to previous chunk set, and press 'n' to move the chunk to next chunk set."),
             generate_screen_title_label("Suggested Chunk Sets({} chunks) (Page: {} / {})".format(len(all_chunks), cur_chunk_set_idx + 1, len(chunk_sets)), "class:page-num"),
             generate_chunk_with_diff_screen(chunk_with_check_boxes, diff_area),
-            generate_screen_title_label("Related Chunks({} chunks)".format(len(related_chunks)), "class:related-label"),
+            generate_screen_title_label("Related and Pending Chunks({} chunks)".format(len(related_chunks)), "class:related-label"),
             generate_chunk_with_diff_screen(related_with_check_boxes, related_diff_area),
             commit_msg_input,
             VSplit(
