@@ -1,4 +1,4 @@
-# auto_split_commits
+# c-four
 ## About
 This is the console tool for interactively staging and committing your work(diff).
 ## Usage
