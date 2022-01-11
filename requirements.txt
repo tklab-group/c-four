@@ -1,1 +1,7 @@
-GitPython==3.1.24
+gitdb==4.0.9
+GitPython==3.1.26
+greenlet==1.1.2
+prompt-toolkit==3.0.24
+smmap==5.0.0
+SQLAlchemy==1.4.29
+wcwidth==0.2.5
