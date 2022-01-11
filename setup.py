@@ -20,4 +20,10 @@ setup(
             "c-four=mypkg.script:main",
         ]
     },
+    install_requires=[
+        'wheel',
+        'GitPython',
+        'prompt-toolkit',
+        'SQLAlchemy',
+    ]
 )
