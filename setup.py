@@ -1,12 +1,5 @@
 from setuptools import setup, find_packages
 
-with open('requirements.txt') as requirements_file:
-    install_requirements = requirements_file.read().splitlines()
-
-console_scripts = [
-    'c-four=c-four.script:main',
-]
-
 setup(
     name="c-four",
     version='1.0',
