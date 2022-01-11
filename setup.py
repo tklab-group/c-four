@@ -14,7 +14,6 @@ setup(
         ]
     },
     install_requires=[
-        'wheel',
         'GitPython',
         'prompt-toolkit',
         'SQLAlchemy',
