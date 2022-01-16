@@ -95,7 +95,7 @@ def generate_chunks_with_check_box(check_boxes, all_chunks):
     return [VSplit([check_box_contents[i], all_chunks[i]]) for i in range(len(all_chunks))]
 
 def generate_main_chunk_components(add_chunks, remove_chunks):
-    diff_text = FormattedTextControl(focusable=True)
+    diff_text = FormattedTextControl(focusable=False)
     diff_area = Window(diff_text)
     
     check_boxes = [Label(text=" [*]") for i in range(len(add_chunks) + len(remove_chunks))]
@@ -127,7 +127,7 @@ def generate_chunk_with_diff_screen(chunk_with_check_boxes, diff_area):
                 [
                     Label(text="Diff", style="class:diff"),
                     Box(
-                        body=Frame(ScrollablePane(diff_area)),
+                        body=Frame(diff_area),
                         padding=0,
                         style='class:right-pane',
                     ),
@@ -207,6 +207,7 @@ def generate_add_patch_with_style(chunk):
             b_line_num += 1
             added_count += 1
     
+    patch.append(('class:default-line', '|\n'*20))
     patch.insert(0, ('class:patch-label', '@@ -{0},{1} +{2},{3} @@ {4}\n'.format(a_start_id, a_line_num, b_start_id, b_line_num, chunk.context.path)))
     return FormattedText(patch)
 
@@ -248,6 +249,7 @@ def generate_remove_patch_with_style(chunk):
             b_line_num += 1
         a_line_num += 1
     
+    patch.append(('class:default-line', '|\n'*20))
     patch.insert(0, ('class:patch-label', '@@ -{0},{1} +{2},{3} @@ {4}\n'.format(a_start_id, a_line_num, b_start_id, b_line_num, chunk.context.path)))
     return FormattedText(patch)
 
@@ -307,7 +309,7 @@ def generate_candidate_buffers(candidates, text_area, check_boxes, candidate_sta
     return buffers
 
 def generate_other_chunk_components(chunks):
-    diff_text = FormattedTextControl(focusable=True)
+    diff_text = FormattedTextControl(focusable=False)
     diff_area = Window(diff_text)
     
     check_boxes = [Label(text=" [ ]") for i in range(len(chunks))]
