@@ -21,7 +21,7 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
     # commit message input field
     commit_msg_input = TextArea(
         height=2,
-        prompt="commit message:",
+        prompt="commit message>>",
         text=chunk_set.message,
         style="class:commit-message",
         multiline=True,
