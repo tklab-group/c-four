@@ -75,14 +75,17 @@ def generate_buffer_window(buffer_text, text_area, patch, style, check_box, chun
 def generate_chunk_buffers(add_chunks, remove_chunks, text_area, check_boxes, chunk_state_list):
     buffers = []
     index = 0
-    for add_chunk in add_chunks:
-        buffer_text = '{} \n({}, {})'.format(add_chunk.context.path, add_chunk.start_id, add_chunk.end_id)
-        buffers.append(generate_buffer_window(buffer_text, text_area, generate_add_patch_with_style(add_chunk), "class:add-chunk", check_boxes[index], chunk_state_list, index))
-        index += 1
-        
-    for remove_chunk in remove_chunks:
-        buffer_text = '{} \n({}, {})'.format(remove_chunk.context.path, remove_chunk.start_id, remove_chunk.end_id)
-        buffers.append(generate_buffer_window(buffer_text, text_area, generate_remove_patch_with_style(remove_chunk), "class:remove-chunk", check_boxes[index], chunk_state_list, index))
+    all_chunks = []
+    all_chunks.extend(add_chunks)
+    all_chunks.extend(remove_chunks)
+    chunks_sorted = sorted(all_chunks, key = lambda x: (x.context.path, x.start_id))
+    
+    for chunk in chunks_sorted:
+        buffer_text = '{} \n({}, {})'.format(chunk.context.path, chunk.start_id, chunk.end_id)
+        if isinstance(chunk, AddChunk):
+            buffers.append(generate_buffer_window(buffer_text, text_area, generate_add_patch_with_style(chunk), "class:add-chunk", check_boxes[index], chunk_state_list, index))
+        else:
+            buffers.append(generate_buffer_window(buffer_text, text_area, generate_remove_patch_with_style(chunk), "class:remove-chunk", check_boxes[index], chunk_state_list, index))
         index += 1
     
     return buffers
@@ -155,7 +158,7 @@ def generate_add_patch_with_style(chunk):
     
     context_codes = CodeInfo.query.filter(CodeInfo.context_id == chunk.context_id, start_id <= CodeInfo.line_id, CodeInfo.line_id <= end_id)
     other_add_chunks = AddChunk.query.filter(start_id <= AddChunk.start_id, AddChunk.start_id <= end_id, AddChunk.id != chunk.id, AddChunk.context_id == chunk.context_id)
-    other_remove_chunks = RemoveChunk.query.filter(start_id <= RemoveChunk.start_id, RemoveChunk.start_id <= end_id, RemoveChunk.context_id == chunk.context_id)
+    other_remove_chunks = RemoveChunk.query.filter(start_id <= RemoveChunk.end_id, RemoveChunk.start_id <= end_id, RemoveChunk.context_id == chunk.context_id)
     other_add_chunk_dict = {c.start_id: c.add_chunk_codes for c in other_add_chunks}
     other_remove_chunk_line_ids = set()
     for other_remove_chunk in other_remove_chunks:
