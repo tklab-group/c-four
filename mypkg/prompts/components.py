@@ -127,7 +127,7 @@ def generate_chunk_with_diff_screen(chunk_with_check_boxes, diff_area):
                 [
                     Label(text="Diff", style="class:diff"),
                     Box(
-                        body=Frame(ScrollablePane(diff_area)),
+                        body=Frame(diff_area),
                         padding=0,
                         style='class:right-pane',
                     ),
