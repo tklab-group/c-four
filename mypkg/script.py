@@ -8,23 +8,29 @@ from mypkg.models.remove_chunk import RemoveChunk
 from mypkg.models.chunk_set import ChunkSet
 from mypkg.prompts.main_prompt import generate_main_screen
 from prompt_toolkit.shortcuts import yes_no_dialog
-from mypkg.operate_json import make_file_unit_json, convert_json_to_data
+from mypkg.operate_json import make_single_unit_json, make_file_unit_json, convert_json_to_data
 import json
+import click
 
-def main():
+@click.command()
+@click.option('--all', '-a', 'input_type', flag_value='all', help="Don't perform initial split")
+@click.option('--file', '-f',  'input_type', flag_value='file', help="Performs initial split by file.")
+@click.option('--input', '-i', 'input_type', help="Performs initial split by input json.")
+def main(input_type):
     path = os.getcwd()
     repo = operate_git.get_repo(path)
     diffs = operate_git.get_diffs(repo)
     Base.metadata.create_all(engine)
     
-    file_unit_json = make_file_unit_json(diffs)
-    with open('./json/sample.json', 'w') as f:
-        json.dump(file_unit_json, f, ensure_ascii=False, indent=2)
-
-    with open('./json/sample.json', 'r') as f:
-        json_load = json.load(f)
-        convert_json_to_data(json_load)
+    if input_type == 'file':
+        initial_split = make_file_unit_json(diffs)
+    elif input_type == 'input':
+        with open('./json/sample.json', 'r') as f:
+            initial_split = json.load(f)
+    else:
+        initial_split = make_single_unit_json(diffs)
     
+    convert_json_to_data(initial_split)
     while True:
         all_chunks = []
         all_add_chunks = AddChunk.query.all()

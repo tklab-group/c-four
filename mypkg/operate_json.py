@@ -7,51 +7,69 @@ from mypkg.models.code_info import CodeInfo
 from mypkg.db_settings import session
 import re
 
-def make_file_unit_json(diffs):
-    data = {"contexts": [], "chunk_sets": []}
+def convert_diff_to_chunks(diff, context, chunk_set, context_id):
+    diff = diff.diff.decode().split('\n')
+    diff.pop()
+    add_line_infos, remove_line_ids = [], []
+    regexp = re.compile(',| ')
+    add_line_count = 0
     add_line_id = remove_line_id = 0
+    
+    for line in diff:
+        if line.startswith('@@'):
+            line_id_strs = [token[1:] for token in regexp.split(line.split('@@')[1]) if token.startswith(('+', '-'))]
+            remove_line_id = int(line_id_strs[0])
+            add_line_id = remove_line_id + add_line_count
+        elif line.startswith('+'):
+            add_line_infos.append(CodeInfo(add_line_id, line[1:], context_id))
+            add_line_id += 1
+            add_line_count += 1
+        elif line.startswith('-'):
+            remove_line_ids.append(remove_line_id)
+            context["code_infos"].append({"code": line[1:], "line_id": remove_line_id})
+            remove_line_id += 1
+            add_line_id += 1
+        else:
+            context["code_infos"].append({"code": line[1:], "line_id": remove_line_id})
+            add_line_id += 1
+            remove_line_id += 1
+    
+    if bool(add_line_infos):
+        convert_lines_to_add_chunk(add_line_infos, context_id, chunk_set["add_chunks"])
+    if bool(remove_line_ids):
+        convert_lines_to_remove_chunk(remove_line_ids, context_id, chunk_set["remove_chunks"])
+
+def make_single_unit_json(diffs):
+    data = {"contexts": [], "chunk_sets": []}
+    chunk_set = {"add_chunks": [], "remove_chunks": []}
     context_id = 1
     
     for diff in diffs:
         context = {"id": context_id, "path": diff.a_path, "code_infos": []}
-        chunk_set = {"add_chunks": [], "remove_chunks": []}
-        diff = diff.diff.decode().split('\n')
-        diff.pop()
-        add_line_infos, remove_line_ids = [], []
-        regexp = re.compile(',| ')
-        add_line_count = 0
-
-        for line in diff:
-            if line.startswith('@@'):
-                line_id_strs = [token[1:] for token in regexp.split(line.split('@@')[1]) if token.startswith(('+', '-'))]
-                remove_line_id = int(line_id_strs[0])
-                add_line_id = remove_line_id + add_line_count
-            elif line.startswith('+'):
-                add_line_infos.append(CodeInfo(add_line_id, line[1:], context_id))
-                add_line_id += 1
-                add_line_count += 1
-            elif line.startswith('-'):
-                remove_line_ids.append(remove_line_id)
-                context["code_infos"].append({"code": line[1:], "line_id": remove_line_id})
-                remove_line_id += 1
-                add_line_id += 1
-            else:
-                context["code_infos"].append({"code": line[1:], "line_id": remove_line_id})
-                add_line_id += 1
-                remove_line_id += 1
+        convert_diff_to_chunks(diff, context, chunk_set, context_id)
         
-        if bool(add_line_infos):
-            convert_lines_to_add_chunk(add_line_infos, context_id, chunk_set)
-        if bool(remove_line_ids):
-            convert_lines_to_remove_chunk(remove_line_ids, context_id, chunk_set)
+        data["contexts"].append(context)
+        context_id += 1
 
+    data["chunk_sets"].append(chunk_set)
+    return data
+
+def make_file_unit_json(diffs):
+    data = {"contexts": [], "chunk_sets": []}
+    context_id = 1
+    
+    for diff in diffs:
+        chunk_set = {"add_chunks": [], "remove_chunks": []}
+        context = {"id": context_id, "path": diff.a_path, "code_infos": []}
+        convert_diff_to_chunks(diff, context, chunk_set, context_id)
+        
         data["contexts"].append(context)
         data["chunk_sets"].append(chunk_set)
         context_id += 1
-        
+
     return data
 
-def convert_lines_to_add_chunk(infos, context_id, chunk_set):
+def convert_lines_to_add_chunk(infos, context_id, add_chunks):
     first_info = infos.pop(0)
     start_id, codes = first_info.line_id, [first_info.code]
     prev_id = end_id = start_id
@@ -72,10 +90,10 @@ def convert_lines_to_add_chunk(infos, context_id, chunk_set):
             start_id = end_id = id
             codes = [info.code]
             add_chunk_id += 1
-            chunk_set["add_chunks"].append(add_chunk)
+            add_chunks.append(add_chunk)
         prev_id = id
 
-def convert_lines_to_remove_chunk(ids, context_id, chunk_set):
+def convert_lines_to_remove_chunk(ids, context_id, remove_chunks):
     start_id = ids.pop(0)
     prev_id = end_id = start_id
     ids.append(-1)
@@ -85,7 +103,7 @@ def convert_lines_to_remove_chunk(ids, context_id, chunk_set):
         if id == prev_id + 1:
             end_id = id
         else:
-            chunk_set["remove_chunks"].append({"id": remove_chunk_id, "start_id": start_id, "end_id": end_id, "context_id": context_id})
+            remove_chunks.append({"id": remove_chunk_id, "start_id": start_id, "end_id": end_id, "context_id": context_id})
             start_id = end_id = id
         prev_id = id
     
