@@ -21,7 +21,10 @@ def main():
     with open('./json/sample.json', 'w') as f:
         json.dump(file_unit_json, f, ensure_ascii=False, indent=2)
 
-    convert_json_to_data(file_unit_json)
+    with open('./json/sample.json', 'r') as f:
+        json_load = json.load(f)
+        convert_json_to_data(json_load)
+    
     while True:
         all_chunks = []
         all_add_chunks = AddChunk.query.all()
