@@ -40,8 +40,6 @@ def make_file_unit_json(diffs):
                 add_line_id += 1
                 remove_line_id += 1
         
-        context_id += 1
-    
         if bool(add_line_infos):
             convert_lines_to_add_chunk(add_line_infos, context_id, chunk_set)
         if bool(remove_line_ids):
@@ -49,6 +47,7 @@ def make_file_unit_json(diffs):
 
         data["contexts"].append(context)
         data["chunk_sets"].append(chunk_set)
+        context_id += 1
         
     return data
 
