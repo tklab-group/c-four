@@ -20,14 +20,6 @@ def main():
     file_unit_json = make_file_unit_json(diffs)
     with open('./json/sample.json', 'w') as f:
         json.dump(file_unit_json, f, ensure_ascii=False, indent=2)
-    
-    # return None
-    
-    # for diff in diffs:
-    #     context = Context(diff.a_path)
-    #     session.add(context)
-    #     session.commit()
-    #     context.convert_diff_to_chunk(diff.diff.decode())
 
     convert_json_to_data(file_unit_json)
     while True:
