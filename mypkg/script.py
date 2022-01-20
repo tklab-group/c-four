@@ -1,14 +1,13 @@
 from mypkg import operate_git
 import os
 from mypkg.db_settings import Base, engine, session
-from mypkg.split_chunks import split_chunks_by_file
 from mypkg.models.context import Context
 from mypkg.models.add_chunk import AddChunk
 from mypkg.models.remove_chunk import RemoveChunk
 from mypkg.models.chunk_set import ChunkSet
 from mypkg.prompts.main_prompt import generate_main_screen
 from prompt_toolkit.shortcuts import yes_no_dialog
-from mypkg.operate_json import make_single_unit_json, make_file_unit_json, convert_json_to_data
+from mypkg.operate_json import make_single_unit_json, make_file_unit_json, construct_data_from_json, set_related_chunks_for_default_mode
 import json
 import click
 
@@ -24,13 +23,17 @@ def main(input_type):
     
     if input_type == 'file':
         initial_split = make_file_unit_json(diffs)
+        set_related_chunks_for_default_mode(initial_split)
     elif input_type == 'input':
         with open('./json/sample.json', 'r') as f:
             initial_split = json.load(f)
     else:
         initial_split = make_single_unit_json(diffs)
-    
-    convert_json_to_data(initial_split)
+        set_related_chunks_for_default_mode(initial_split)
+
+    with open('./json/sample.json', 'w') as f:
+        json.dump(initial_split, f, indent=4)
+    construct_data_from_json(initial_split)
     while True:
         all_chunks = []
         all_add_chunks = AddChunk.query.all()

@@ -5,6 +5,8 @@ from sqlalchemy.orm import relationship
 from mypkg.make_patch import generate_full_patch
 from mypkg.models.code_info import CodeInfo
 from mypkg.db_settings import Base, session
+from mypkg.models.chunk_relation import ChunkRelation, ChunkType
+# from mypkg.models.remove_chunk import RemoveChunk
 
 def increment_line_id(count, start_id, chunks):
     for chunk in chunks:
@@ -75,3 +77,13 @@ class AddChunk(Base):
     
         increment_line_id(added_count, start_id, context.add_chunks)
         increment_line_id(added_count, start_id, context.remove_chunks)
+        
+    # def related_chunks(self):
+    #     own_relations = ChunkRelation.query.filter(ChunkRelation.parent_chunk_id == self.id, ChunkRelation.parent_chunk_type == ChunkType.ADD)
+    #     chunks = []
+    #     for relation in own_relations:
+    #         if relation.child_chunk_type == ChunkType.ADD:
+    #             chunks.extend(AddChunk.query.filter(AddChunk.id == relation.id))
+    #         elif relation.child_chunk_type == ChunkType.REMOVE:
+    #             chunks.extend(RemoveChunk.query.filter(RemoveChunk.id == relation.id))
+    #     return chunks
