@@ -103,7 +103,7 @@ def generate_main_chunk_components(add_chunks, remove_chunks):
     all_chunks = generate_chunk_buffers(add_chunks, remove_chunks, diff_text, check_boxes, state_list)
     chunk_with_check_boxes = generate_chunks_with_check_box(check_boxes, all_chunks)
     
-    return diff_text, diff_area, all_chunks, state_list, chunk_with_check_boxes
+    return diff_text, diff_area, all_chunks, state_list, chunk_with_check_boxes, check_boxes
 
 def generate_chunk_with_diff_screen(chunk_with_check_boxes):
     check_box_label = generate_label("State", "class:check-box-label", CHECKBOXWIDTH)
@@ -313,7 +313,7 @@ def generate_other_chunk_components(chunks, diff_text):
     all_chunks = generate_candidate_buffers(chunks, diff_text, check_boxes, state_list)
     chunk_with_check_boxes = generate_chunks_with_check_box(check_boxes, all_chunks)
     
-    return all_chunks, state_list, chunk_with_check_boxes
+    return all_chunks, state_list, chunk_with_check_boxes, check_boxes
 
 #other components
 def generate_screen_title_label(text, style):
