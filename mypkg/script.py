@@ -85,7 +85,14 @@ def main(input_type):
                 text="There is still {} pending chunks.\nDo you want to stage these chunks?".format(len(other_chunks))
             ).run()
             
-            if not result:
+            if result:
+                new_chunk_set = ChunkSet()
+                session.add(new_chunk_set)
+                session.commit()
+                for other_chunk in other_chunks:
+                    other_chunk.chunk_set_id = new_chunk_set.id
+                session.commit()
+            else:
                 break
         else:
             break
