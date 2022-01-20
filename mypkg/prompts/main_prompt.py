@@ -6,17 +6,17 @@ from prompt_toolkit.widgets import Label, TextArea
 from prompt_toolkit.styles import Style
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.key_binding.bindings.focus import focus_next, focus_previous
-from mypkg.prompts.components import generate_main_chunk_components, generate_screen_title_label, generate_chunk_with_diff_screen, generate_move_button, generate_other_chunk_components, ChunkState
+from mypkg.prompts.components import generate_main_chunk_components, generate_screen_title_label, generate_chunk_with_diff_screen, generate_move_button, generate_other_chunk_components, ChunkState, generate_diff_screen
 
 def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
     #main chunks components
     chunk_set = chunk_sets[cur_chunk_set_idx]
 
     add_chunks, remove_chunks = chunk_set.add_chunks, chunk_set.remove_chunks
-    diff_area, all_chunks, chunk_state_list, chunk_with_check_boxes = generate_main_chunk_components(add_chunks, remove_chunks)
+    diff_text, diff_area, all_chunks, chunk_state_list, chunk_with_check_boxes = generate_main_chunk_components(add_chunks, remove_chunks)
 
     #related and pending chunks components
-    related_diff_area, all_related_chunks, related_state_list, related_with_check_boxes = generate_other_chunk_components(related_chunks)
+    all_related_chunks, related_state_list, related_with_check_boxes = generate_other_chunk_components(related_chunks, diff_text)
     
     # commit message input field
     commit_msg_input = TextArea(
@@ -107,10 +107,19 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
     root_container = HSplit(
         [
             Label(text="Press `Enter` to show diff, press 'a' to include the chunk to this chunk set, press 'd' to put on pending status,\npress 'p' to move the chunk to previous chunk set, and press 'n' to move the chunk to next chunk set."),
-            generate_screen_title_label("Suggested Chunk Sets({} chunks) (Page: {} / {})".format(len(all_chunks), cur_chunk_set_idx + 1, len(chunk_sets)), "class:page-num"),
-            generate_chunk_with_diff_screen(chunk_with_check_boxes, diff_area),
-            generate_screen_title_label("Related and Pending Chunks({} chunks)".format(len(related_chunks)), "class:related-label"),
-            generate_chunk_with_diff_screen(related_with_check_boxes, related_diff_area),
+            VSplit(
+                [
+                    HSplit(
+                        [
+                            generate_screen_title_label("Suggested Chunk Sets({} chunks) (Page: {} / {})".format(len(all_chunks), cur_chunk_set_idx + 1, len(chunk_sets)), "class:page-num"),
+                            generate_chunk_with_diff_screen(chunk_with_check_boxes),
+                            generate_screen_title_label("Related and Pending Chunks({} chunks)".format(len(related_chunks)), "class:related-label"),
+                            generate_chunk_with_diff_screen(related_with_check_boxes),
+                        ]
+                    ),
+                    generate_diff_screen(diff_area)
+                ]
+            ),
             commit_msg_input,
             VSplit(
                 [
