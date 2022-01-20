@@ -7,7 +7,7 @@ from mypkg.models.remove_chunk import RemoveChunk
 from mypkg.models.chunk_set import ChunkSet
 from mypkg.prompts.main_prompt import generate_main_screen
 from prompt_toolkit.shortcuts import yes_no_dialog
-from mypkg.operate_json import make_single_unit_json, make_file_unit_json, construct_data_from_json, set_related_chunks_for_default_mode
+from mypkg.operate_json import make_single_unit_json, make_file_unit_json, construct_data_from_json, set_related_chunks_for_default_mode, related_chunks_for_add_chunk
 import json
 import click
 
@@ -53,10 +53,14 @@ def main(input_type):
             cur_chunk_set = chunk_sets[cur_chunk_set_idx]
             cur_chunks.extend(cur_chunk_set.add_chunks)
             cur_chunks.extend(cur_chunk_set.remove_chunks)
-            # path_sets = {chunk.context.path for chunk in cur_chunks}
             
-            # related_chunks = [chunk for chunk in all_chunks if chunk.context.path in path_sets and chunk.chunk_set_id != cur_chunk_set.id]
             related_chunks = []
+            for add_chunk in cur_chunk_set.add_chunks:
+                related_chunks.extend(related_chunks_for_add_chunk(add_chunk, cur_chunks))
+            for remove_chunk in cur_chunk_set.remove_chunks:
+                related_chunks.extend(related_chunks_for_add_chunk(remove_chunk, cur_chunks))
+            
+            related_chunks = list(set(related_chunks))
             pending_chunks = [chunk for chunk in all_chunks if chunk.chunk_set_id is None]
             related_chunks.extend(pending_chunks)
             related_chunks = list(set(related_chunks))

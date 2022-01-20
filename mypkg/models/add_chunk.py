@@ -78,12 +78,12 @@ class AddChunk(Base):
         increment_line_id(added_count, start_id, context.add_chunks)
         increment_line_id(added_count, start_id, context.remove_chunks)
         
-    # def related_chunks(self):
-    #     own_relations = ChunkRelation.query.filter(ChunkRelation.parent_chunk_id == self.id, ChunkRelation.parent_chunk_type == ChunkType.ADD)
-    #     chunks = []
-    #     for relation in own_relations:
-    #         if relation.child_chunk_type == ChunkType.ADD:
-    #             chunks.extend(AddChunk.query.filter(AddChunk.id == relation.id))
-    #         elif relation.child_chunk_type == ChunkType.REMOVE:
-    #             chunks.extend(RemoveChunk.query.filter(RemoveChunk.id == relation.id))
-    #     return chunks
+    def related_chunks(self):
+        own_relations = ChunkRelation.query.filter(ChunkRelation.parent_chunk_id == self.id, ChunkRelation.parent_chunk_type == ChunkType.ADD)
+        chunks = []
+        for relation in own_relations:
+            if relation.child_chunk_type == ChunkType.ADD:
+                chunks.extend(AddChunk.query.filter(AddChunk.id == relation.id))
+            elif relation.child_chunk_type == ChunkType.REMOVE:
+                chunks.extend(RemoveChunk.query.filter(RemoveChunk.id == relation.id))
+        return chunks
