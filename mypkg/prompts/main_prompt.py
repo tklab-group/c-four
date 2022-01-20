@@ -49,6 +49,7 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
         cur_chunks = []
         cur_chunks.extend(add_chunks)
         cur_chunks.extend(remove_chunks)
+        cur_chunks = sorted(cur_chunks, key = lambda x: (x.context.path, x.start_id))
     
         for cur_chunk in cur_chunks:
             chunk_state = chunk_state_list[index]
