@@ -187,10 +187,6 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
         if all_related_chunks:
             event.app.layout.focus(all_related_chunks[0])
 
-    @gen_kb.add("c-d")
-    def _(event):
-        event.app.layout.focus(related_diff_area)
-
     @gen_kb.add("c-p")
     def _(event):
         if is_not_first:
