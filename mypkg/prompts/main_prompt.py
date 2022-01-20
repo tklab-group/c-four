@@ -13,10 +13,10 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
     chunk_set = chunk_sets[cur_chunk_set_idx]
 
     add_chunks, remove_chunks = chunk_set.add_chunks, chunk_set.remove_chunks
-    diff_text, diff_area, all_chunks, chunk_state_list, chunk_with_check_boxes = generate_main_chunk_components(add_chunks, remove_chunks)
+    diff_text, diff_area, all_chunks, chunk_state_list, chunk_with_check_boxes, check_boxes = generate_main_chunk_components(add_chunks, remove_chunks)
 
     #related and pending chunks components
-    all_related_chunks, related_state_list, related_with_check_boxes = generate_other_chunk_components(related_chunks, diff_text)
+    all_related_chunks, related_state_list, related_with_check_boxes, related_check_boxes = generate_other_chunk_components(related_chunks, diff_text)
     
     # commit message input field
     commit_msg_input = TextArea(
@@ -173,28 +173,66 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
     def _(event):
         event.app.layout.focus(commit_msg_input)
 
-    @gen_kb.add("c-a")
+    @gen_kb.add("c-f")
     def _(event):
         if all_chunks:
             event.app.layout.focus(all_chunks[0])
 
-    @gen_kb.add("c-b")
-    def _(event):
-        event.app.layout.focus(diff_area)
-
-    @gen_kb.add("c-c")
+    @gen_kb.add("c-r")
     def _(event):
         if all_related_chunks:
             event.app.layout.focus(all_related_chunks[0])
 
-    @gen_kb.add("c-p")
+    @gen_kb.add("s-left")
     def _(event):
         if is_not_first:
             event.app.layout.focus(prev_chunk_button)
 
-    @gen_kb.add("c-n")
+    @gen_kb.add("s-right")
     def _(event):
         event.app.layout.focus(next_chunk_button)
+
+    @gen_kb.add("c-a")
+    def _(event):
+        for check_box in check_boxes:
+            check_box.text = " [*]"
+        for i in range(len(chunk_state_list)):
+            chunk_state_list[i] = ChunkState.KEEP
+
+    @gen_kb.add("c-d")
+    def _(event):
+        for check_box in check_boxes:
+            check_box.text = " [ ]"
+        for i in range(len(chunk_state_list)):
+            chunk_state_list[i] = ChunkState.PENDING
+
+    @gen_kb.add("c-p")
+    def _(event):
+        for check_box in check_boxes:
+            check_box.text = " [p]"
+        for i in range(len(chunk_state_list)):
+            chunk_state_list[i] = ChunkState.PREV
+
+    @gen_kb.add("c-n")
+    def _(event):
+        for check_box in check_boxes:
+            check_box.text = " [n]"
+        for i in range(len(chunk_state_list)):
+            chunk_state_list[i] = ChunkState.NEXT
+
+    @gen_kb.add("tab")
+    def _(event):
+        for check_box in related_check_boxes:
+            check_box.text = " [*]"
+        for i in range(len(related_state_list)):
+            related_state_list[i] = ChunkState.ASSIGN
+
+    @gen_kb.add("s-tab")
+    def _(event):
+        for check_box in related_check_boxes:
+            check_box.text = " [ ]"
+        for i in range(len(related_state_list)):
+            related_state_list[i] = ChunkState.KEEP
     
     # define layout and application
     layout = Layout(container=root_container, focused_element=next_chunk_button)
