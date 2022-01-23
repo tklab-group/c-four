@@ -186,66 +186,37 @@ def construct_data_from_json(json):
         session.add(ChunkRelation(first_chunk_id, first_chunk_type, second_chunk_id, second_chunk_type))
     session.commit()
 
-def related_chunks_for_add_chunk(add_chunk, chunks):
-    first_relations = ChunkRelation.query.filter(ChunkRelation.first_chunk_id == add_chunk.id, ChunkRelation.first_chunk_type == ChunkType.ADD)
-    second_relations = ChunkRelation.query.filter(ChunkRelation.second_chunk_id == add_chunk.id, ChunkRelation.second_chunk_type == ChunkType.ADD)
+def get_related_chunks(cur_chunk, cur_chunks):
+    if isinstance(cur_chunk, AddChunk):
+        own_type = ChunkType.ADD
+    else:
+        own_type = ChunkType.REMOVE
+    
+    first_relations = ChunkRelation.query.filter(ChunkRelation.first_chunk_id == cur_chunk.id, ChunkRelation.first_chunk_type == own_type)
+    second_relations = ChunkRelation.query.filter(ChunkRelation.second_chunk_id == cur_chunk.id, ChunkRelation.second_chunk_type == own_type)
+
+    def convert_type_to_class(chunk_type):
+        if chunk_type == ChunkType.ADD:
+            return AddChunk
+        else:
+            return RemoveChunk
     
     def is_included(target_chunk_id, target_chunk_type):
-        for chunk in chunks:
-            if isinstance(chunk, AddChunk):
-                if chunk.id == target_chunk_id and target_chunk_type == ChunkType.ADD:
-                    return True
-            else:
-                if chunk.id == target_chunk_id and target_chunk_type == ChunkType.REMOVE:
-                    return True
+        for pair_chunk in cur_chunks:
+            if pair_chunk.id == target_chunk_id and type(pair_chunk) == convert_type_to_class(target_chunk_type):
+                return True
         return False
 
     related_chunks = []
     for fr in first_relations:
         if is_included(fr.second_chunk_id, fr.second_chunk_type):
             continue
-        if fr.second_chunk_type == ChunkType.ADD:
-            related_chunks.extend(AddChunk.query.filter(AddChunk.id == fr.second_chunk_id))
-        else:
-            related_chunks.extend(RemoveChunk.query.filter(RemoveChunk.id == fr.second_chunk_id))
+        chunk_class = convert_type_to_class(fr.second_chunk_type)
+        related_chunks.extend(chunk_class.query.filter_by(id = fr.second_chunk_id))
     for sr in second_relations:
         if is_included(sr.first_chunk_id, sr.first_chunk_type):
             continue
-        if sr.first_chunk_type == ChunkType.ADD:
-            related_chunks.extend(AddChunk.query.filter(AddChunk.id == sr.first_chunk_id))
-        else:
-            related_chunks.extend(RemoveChunk.query.filter(RemoveChunk.id == sr.first_chunk_id))
-    
-    return related_chunks
-
-def related_chunks_for_remove_chunk(remove_chunk, chunks):
-    first_relations = ChunkRelation.query.filter(ChunkRelation.first_chunk_id == remove_chunk.id, ChunkRelation.first_chunk_type == ChunkType.REMOVE)
-    second_relations = ChunkRelation.query.filter(ChunkRelation.second_chunk_id == remove_chunk.id, ChunkRelation.second_chunk_type == ChunkType.REMOVE)
-    
-    def is_included(target_chunk_id, target_chunk_type):
-        for chunk in chunks:
-            if isinstance(chunk, AddChunk):
-                if chunk.id == target_chunk_id and target_chunk_type == ChunkType.ADD:
-                    return True
-            else:
-                if chunk.id == target_chunk_id and target_chunk_type == ChunkType.REMOVE:
-                    return True
-        return False
-    
-    related_chunks = []
-    for fr in first_relations:
-        if is_included(fr.second_chunk_id, fr.second_chunk_type):
-            continue
-        if fr.second_chunk_type == ChunkType.ADD:
-            related_chunks.extend(AddChunk.query.filter(AddChunk.id == fr.second_chunk_id))
-        else:
-            related_chunks.extend(RemoveChunk.query.filter(RemoveChunk.id == fr.second_chunk_id))
-    for sr in second_relations:
-        if is_included(sr.first_chunk_id, sr.first_chunk_type):
-            continue
-        if sr.first_chunk_type == ChunkType.ADD:
-            related_chunks.extend(AddChunk.query.filter(AddChunk.id == sr.first_chunk_id))
-        else:
-            related_chunks.extend(RemoveChunk.query.filter(RemoveChunk.id == sr.first_chunk_id))
+        chunk_class = convert_type_to_class(sr.first_chunk_type)
+        related_chunks.extend(chunk_class.query.filter_by(id = sr.first_chunk_id))
     
     return related_chunks

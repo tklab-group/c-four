@@ -63,8 +63,9 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
 
     def assign_selected_chunks(chunks, states):
         index = 0
+        chunks_sorted = sorted(chunks, key = lambda x: (x.context.path, x.start_id))
     
-        for chunk in chunks:
+        for chunk in chunks_sorted:
             state = states[index]
             if state == ChunkState.ASSIGN:
                 chunk.chunk_set_id = chunk_set.id
