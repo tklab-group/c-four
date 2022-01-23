@@ -65,12 +65,15 @@ def generate_buffer_window(buffer_text, text_area, patch, style, check_box, chun
             focusable=True,
             key_bindings=generate_buffer_key_bindings(text_area, patch, check_box, chunk_state_list, index),
         ),
-        height=2,
+        height=1,
         style=style,
         width=D(weight=2),
     )
     
     return window
+
+def generate_path_label(path):
+    return Label(text="Path: {}".format(path), style="class:path-label")
 
 def generate_chunk_buffers(add_chunks, remove_chunks, text_area, check_boxes, chunk_state_list):
     buffers = []
@@ -79,9 +82,13 @@ def generate_chunk_buffers(add_chunks, remove_chunks, text_area, check_boxes, ch
     all_chunks.extend(add_chunks)
     all_chunks.extend(remove_chunks)
     chunks_sorted = sorted(all_chunks, key = lambda x: (x.context.path, x.start_id))
+    cur_path = ''
     
     for chunk in chunks_sorted:
-        buffer_text = '{} \n({}, {})'.format(chunk.context.path, chunk.start_id, chunk.end_id)
+        if chunk.context.path != cur_path:
+            cur_path = chunk.context.path
+            buffers.append(generate_path_label(cur_path))
+        buffer_text = '({}, {})'.format(chunk.start_id, chunk.end_id)
         if isinstance(chunk, AddChunk):
             buffers.append(generate_buffer_window(buffer_text, text_area, generate_add_patch_with_style(chunk), "class:add-chunk", check_boxes[index], chunk_state_list, index))
         else:
@@ -92,7 +99,16 @@ def generate_chunk_buffers(add_chunks, remove_chunks, text_area, check_boxes, ch
 
 def generate_chunks_with_check_box(check_boxes, all_chunks):
     check_box_contents = [Box(body=check_box, style="class:check-box", width=CHECKBOXWIDTH) for check_box in check_boxes]
-    return [VSplit([check_box_contents[i], all_chunks[i]]) for i in range(len(all_chunks))]
+    component = []
+    index = 0
+    for chunk in all_chunks:
+        if isinstance(chunk, Label):
+            component.append(chunk)
+        else:
+            component.append(VSplit([check_box_contents[index], chunk]))
+            index += 1
+    
+    return component
 
 def generate_main_chunk_components(add_chunks, remove_chunks):
     diff_text = FormattedTextControl(focusable=False)
@@ -106,12 +122,8 @@ def generate_main_chunk_components(add_chunks, remove_chunks):
     return diff_text, diff_area, all_chunks, state_list, chunk_with_check_boxes, check_boxes
 
 def generate_chunk_with_diff_screen(chunk_with_check_boxes):
-    check_box_label = generate_label("State", "class:check-box-label", CHECKBOXWIDTH)
-    chunk_set_label = generate_label("Chunk Sets", "class:chunk-set-label", D(weight=1))
-    
     screen = HSplit(
         [
-            VSplit([check_box_label, chunk_set_label]),
             ScrollablePane(
                 HSplit(
                     chunk_with_check_boxes,
@@ -171,7 +183,8 @@ def generate_add_patch_with_style(chunk):
         if line_id == chunk.start_id:
             added_count = 0
             for code in chunk.add_chunk_codes:
-                patch.append(('class:target-add-line', str(line_id + added_count) + '|+' + code.code + '\n'))
+                patch.append(('class:default-line', str(last_line_id + added_count) + '|'))
+                patch.append(('class:target-add-line', '+' + code.code + '\n'))
                 b_line_num += 1
                 added_count += 1
 
@@ -179,12 +192,14 @@ def generate_add_patch_with_style(chunk):
             add_chunk_codes = other_add_chunk_dict[line_id]
             added_count = 0
             for add_chunk_code in add_chunk_codes:
-                patch.append(('class:other-add-line', str(line_id + added_count) + '|+' + add_chunk_code.code + '\n'))
+                patch.append(('class:default-line', str(line_id + added_count) + '|'))
+                patch.append(('class:other-add-line', '+' + add_chunk_code.code + '\n'))
                 b_line_num += 1
                 added_count += 1
         
         if line_id in other_remove_chunk_line_ids:
-            patch.append(('class:other-remove-line', str(line_id) + '|-' + context_code.code + '\n'))
+            patch.append(('class:default-line', str(line_id) + '|'))
+            patch.append(('class:other-remove-line', '-' + context_code.code + '\n'))
         else:
             patch.append(('class:default-line', str(line_id) + '| ' + context_code.code + '\n'))
             b_line_num += 1
@@ -194,7 +209,8 @@ def generate_add_patch_with_style(chunk):
     if last_line_id == chunk.start_id:
         added_count = 0
         for code in chunk.add_chunk_codes:
-            patch.append(('class:target-add-line', str(last_line_id + added_count) + '|+' + code.code + '\n'))
+            patch.append(('class:default-line', str(last_line_id + added_count) + '|'))
+            patch.append(('class:target-add-line', '+' + code.code + '\n'))
             b_line_num += 1
             added_count += 1
 
@@ -202,7 +218,8 @@ def generate_add_patch_with_style(chunk):
         add_chunk_codes = other_add_chunk_dict[last_line_id]
         added_count = 0
         for add_chunk_code in add_chunk_codes:
-            patch.append(('class:other-add-line', str(last_line_id + added_count) + '|+' + add_chunk_code.code + '\n'))
+            patch.append(('class:default-line', str(last_line_id + added_count) + '|'))
+            patch.append(('class:other-add-line', '+' + add_chunk_code.code + '\n'))
             b_line_num += 1
             added_count += 1
     
@@ -235,14 +252,17 @@ def generate_remove_patch_with_style(chunk):
             add_chunk_codes = other_add_chunk_dict[line_id]
             added_count = 0
             for add_chunk_code in add_chunk_codes:
-                patch.append(('class:other-add-line', str(line_id + added_count) + '|+' + add_chunk_code.code + '\n'))
+                patch.append(('class:default-line', str(line_id + added_count) + '|'))
+                patch.append(('class:other-add-line', '+' + add_chunk_code.code + '\n'))
                 b_line_num += 1
                 added_count += 1
                 
         if line_id in target_remove_chunk_line_ids:
-            patch.append(('class:target-remove-line', str(line_id) + '|-' + context_code.code + '\n'))
+            patch.append(('class:default-line', str(line_id) + '|'))
+            patch.append(('class:target-remove-line', '-' + context_code.code + '\n'))
         elif line_id in other_remove_chunk_line_ids:
-            patch.append(('class:other-remove-line', str(line_id) + '|-' + context_code.code + '\n'))
+            patch.append(('class:default-line', str(line_id) + '|'))
+            patch.append(('class:other-remove-line', '-' + context_code.code + '\n'))
         else:
             patch.append(('class:default-line', str(line_id) + '| ' + context_code.code + '\n'))
             b_line_num += 1
@@ -282,7 +302,7 @@ def generate_candidate_window(buffer_text, text_area, patch, style, check_box, c
             focusable=True,
             key_bindings=generate_candidate_key_bindings(text_area, patch, check_box, candidate_state_list, index),
         ),
-        height=3,
+        height=1,
         style=style,
         width=D(weight=2)
     )
@@ -292,8 +312,13 @@ def generate_candidate_window(buffer_text, text_area, patch, style, check_box, c
 def generate_candidate_buffers(candidates, text_area, check_boxes, candidate_state_list):
     buffers = []
     index = 0
+    cur_path = ''
+    
     for candidate in candidates:
-        buffer_text = '{} \n({}, {})\n'.format(candidate.context.path, candidate.start_id, candidate.end_id)
+        if candidate.context.path != cur_path:
+            cur_path = candidate.context.path
+            buffers.append(generate_path_label(cur_path))
+        buffer_text = '({}, {}): '.format(candidate.start_id, candidate.end_id)
         if candidate.chunk_set_id is not None:
             buffer_text += 'Related(Page: {})'.format(candidate.chunk_set_id)
         else:
@@ -317,17 +342,7 @@ def generate_other_chunk_components(chunks, diff_text):
 
 #other components
 def generate_screen_title_label(text, style):
-    screen = VSplit(
-        [
-            Window(DummyControl(), style='class:label-back'),
-            Window(DummyControl(), style='class:label-back'),
-            Label(text=text, style=style),
-            Window(DummyControl(), style='class:label-back'),
-            Window(DummyControl(), style='class:label-back'),
-        ]
-    )
-    
-    return screen
+    return Label(text=text, style=style)
 
 def generate_move_button(label, focusable, kb, style):
     button = Window(
