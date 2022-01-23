@@ -313,23 +313,23 @@ def generate_candidate_buffers(candidates, text_area, check_boxes, candidate_sta
     buffers = []
     index = 0
     cur_path = ''
-    
-    for candidate in candidates:
+    candidate_sorted = sorted(candidates, key = lambda x: (x.context.path, x.start_id))
+
+    for candidate in candidate_sorted:
         if candidate.context.path != cur_path:
             cur_path = candidate.context.path
             buffers.append(generate_path_label(cur_path))
-        buffer_text = '({}, {}): '.format(candidate.start_id, candidate.end_id)
+        buffer_text = '({}, {})'.format(candidate.start_id, candidate.end_id)
         if candidate.chunk_set_id is not None:
             buffer_text += 'Related(Page: {})'.format(candidate.chunk_set_id)
         else:
             buffer_text += 'Pending'
-        
         if isinstance(candidate, AddChunk):
             buffers.append(generate_candidate_window(buffer_text, text_area, generate_add_patch_with_style(candidate), "class:add-chunk", check_boxes[index], candidate_state_list, index))
         else:
             buffers.append(generate_candidate_window(buffer_text, text_area, generate_remove_patch_with_style(candidate), "class:remove-chunk", check_boxes[index], candidate_state_list, index))
         index += 1
-    
+
     return buffers
 
 def generate_other_chunk_components(chunks, diff_text):
