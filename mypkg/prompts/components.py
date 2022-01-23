@@ -82,19 +82,18 @@ def generate_chunk_buffers(add_chunks, remove_chunks, text_area, check_boxes, ch
     all_chunks.extend(add_chunks)
     all_chunks.extend(remove_chunks)
     chunks_sorted = sorted(all_chunks, key = lambda x: (x.context.path, x.start_id))
-    cur_path = chunks_sorted[0].context.path
-    buffers.append(generate_path_label(cur_path))
+    cur_path = ''
     
     for chunk in chunks_sorted:
         if chunk.context.path != cur_path:
-            buffers.append(generate_path_label(cur_path))
+            buffers.append(generate_path_label(chunk.context.path))
+            cur_path = chunk.context.path
         buffer_text = '({}, {})'.format(chunk.start_id, chunk.end_id)
         if isinstance(chunk, AddChunk):
             buffers.append(generate_buffer_window(buffer_text, text_area, generate_add_patch_with_style(chunk), "class:add-chunk", check_boxes[index], chunk_state_list, index))
         else:
             buffers.append(generate_buffer_window(buffer_text, text_area, generate_remove_patch_with_style(chunk), "class:remove-chunk", check_boxes[index], chunk_state_list, index))
         index += 1
-        cur_path = chunk.context.path
     
     return buffers
 
