@@ -106,12 +106,8 @@ def generate_main_chunk_components(add_chunks, remove_chunks):
     return diff_text, diff_area, all_chunks, state_list, chunk_with_check_boxes, check_boxes
 
 def generate_chunk_with_diff_screen(chunk_with_check_boxes):
-    check_box_label = generate_label("State", "class:check-box-label", CHECKBOXWIDTH)
-    chunk_set_label = generate_label("Chunk Sets", "class:chunk-set-label", D(weight=1))
-    
     screen = HSplit(
         [
-            VSplit([check_box_label, chunk_set_label]),
             ScrollablePane(
                 HSplit(
                     chunk_with_check_boxes,
