@@ -342,17 +342,7 @@ def generate_other_chunk_components(chunks, diff_text):
 
 #other components
 def generate_screen_title_label(text, style):
-    screen = VSplit(
-        [
-            Window(DummyControl(), style='class:label-back'),
-            Window(DummyControl(), style='class:label-back'),
-            Label(text=text, style=style),
-            Window(DummyControl(), style='class:label-back'),
-            Window(DummyControl(), style='class:label-back'),
-        ]
-    )
-    
-    return screen
+    return Label(text=text, style=style)
 
 def generate_move_button(label, focusable, kb, style):
     button = Window(
