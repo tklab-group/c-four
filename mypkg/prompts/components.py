@@ -86,8 +86,8 @@ def generate_chunk_buffers(add_chunks, remove_chunks, text_area, check_boxes, ch
     
     for chunk in chunks_sorted:
         if chunk.context.path != cur_path:
-            buffers.append(generate_path_label(chunk.context.path))
             cur_path = chunk.context.path
+            buffers.append(generate_path_label(cur_path))
         buffer_text = '({}, {})'.format(chunk.start_id, chunk.end_id)
         if isinstance(chunk, AddChunk):
             buffers.append(generate_buffer_window(buffer_text, text_area, generate_add_patch_with_style(chunk), "class:add-chunk", check_boxes[index], chunk_state_list, index))
@@ -302,7 +302,7 @@ def generate_candidate_window(buffer_text, text_area, patch, style, check_box, c
             focusable=True,
             key_bindings=generate_candidate_key_bindings(text_area, patch, check_box, candidate_state_list, index),
         ),
-        height=3,
+        height=1,
         style=style,
         width=D(weight=2)
     )
@@ -312,8 +312,13 @@ def generate_candidate_window(buffer_text, text_area, patch, style, check_box, c
 def generate_candidate_buffers(candidates, text_area, check_boxes, candidate_state_list):
     buffers = []
     index = 0
+    cur_path = ''
+    
     for candidate in candidates:
-        buffer_text = '{} \n({}, {})\n'.format(candidate.context.path, candidate.start_id, candidate.end_id)
+        if candidate.context.path != cur_path:
+            cur_path = candidate.context.path
+            buffers.append(generate_path_label(cur_path))
+        buffer_text = '({}, {}): '.format(candidate.start_id, candidate.end_id)
         if candidate.chunk_set_id is not None:
             buffer_text += 'Related(Page: {})'.format(candidate.chunk_set_id)
         else:
