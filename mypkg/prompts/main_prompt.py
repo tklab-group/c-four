@@ -2,7 +2,7 @@
 from mypkg.db_settings import session
 from prompt_toolkit.application import Application
 from prompt_toolkit.layout import HSplit, VSplit, Layout
-from prompt_toolkit.widgets import Label, TextArea
+from prompt_toolkit.widgets import Label, TextArea, Frame
 from prompt_toolkit.styles import Style
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.key_binding.bindings.focus import focus_next, focus_previous
@@ -20,10 +20,9 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
     
     # commit message input field
     commit_msg_input = TextArea(
-        height=2,
-        prompt="commit message>>",
+        height=3,
+        prompt="",
         text=chunk_set.message,
-        style="class:commit-message",
         multiline=True,
         wrap_lines=False,
     )
@@ -121,7 +120,8 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
                     generate_diff_screen(diff_area)
                 ]
             ),
-            commit_msg_input,
+            Label(text="Commit Message"),
+            Frame(commit_msg_input),
             VSplit(
                 [
                     prev_chunk_button,
@@ -141,7 +141,6 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
             ("chunk-sets", "bg:#454545 #ffffff"),
             ("check-box", "bg:#151515 #ffffff"),
             ("diff", "bg:#000000 #006600"),
-            ("commit-message", "bg:#001177 #ffffff"),
             ("prev-chunk-button-first", "bg:#b22222 #454545"),
             ("prev-chunk-button-normal", "bg:#b22222 #ffffff"),
             ("next-chunk-button-last", "bg:#00bfff #ffff00 bold"),
