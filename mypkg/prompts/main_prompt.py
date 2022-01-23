@@ -112,7 +112,7 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
                 [
                     HSplit(
                         [
-                            generate_screen_title_label("Suggested Chunk Sets({} chunks) (Page: {} / {})".format(len(all_chunks), cur_chunk_set_idx + 1, len(chunk_sets)), "class:page-num"),
+                            generate_screen_title_label("Suggested Chunk Sets({} chunks) (Page: {} / {})".format(len(add_chunks) + len(remove_chunks), cur_chunk_set_idx + 1, len(chunk_sets)), "class:page-num"),
                             generate_chunk_with_diff_screen(chunk_with_check_boxes),
                             generate_screen_title_label("Related and Pending Chunks({} chunks)".format(len(related_chunks)), "class:related-label"),
                             generate_chunk_with_diff_screen(related_with_check_boxes),
