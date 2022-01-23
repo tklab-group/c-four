@@ -155,6 +155,7 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
             ("other-remove-line", "#D44D55"),
             ("label-back", "bg:#C4C4C4 #ffffff"),
             ("patch-label", "bg:#454545 #ffffff"),
+            ("path-label", "bg:#E8C56D #000000"),
         ]
     )
     
