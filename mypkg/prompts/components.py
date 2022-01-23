@@ -65,12 +65,15 @@ def generate_buffer_window(buffer_text, text_area, patch, style, check_box, chun
             focusable=True,
             key_bindings=generate_buffer_key_bindings(text_area, patch, check_box, chunk_state_list, index),
         ),
-        height=2,
+        height=1,
         style=style,
         width=D(weight=2),
     )
     
     return window
+
+def generate_path_label(path):
+    return Label(text="Path: {}".format(path), style="class:path-label")
 
 def generate_chunk_buffers(add_chunks, remove_chunks, text_area, check_boxes, chunk_state_list):
     buffers = []
@@ -79,20 +82,34 @@ def generate_chunk_buffers(add_chunks, remove_chunks, text_area, check_boxes, ch
     all_chunks.extend(add_chunks)
     all_chunks.extend(remove_chunks)
     chunks_sorted = sorted(all_chunks, key = lambda x: (x.context.path, x.start_id))
+    cur_path = chunks_sorted[0].context.path
+    buffers.append(generate_path_label(cur_path))
     
     for chunk in chunks_sorted:
-        buffer_text = '{} \n({}, {})'.format(chunk.context.path, chunk.start_id, chunk.end_id)
+        if chunk.context.path != cur_path:
+            buffers.append(generate_path_label(cur_path))
+        buffer_text = '({}, {})'.format(chunk.start_id, chunk.end_id)
         if isinstance(chunk, AddChunk):
             buffers.append(generate_buffer_window(buffer_text, text_area, generate_add_patch_with_style(chunk), "class:add-chunk", check_boxes[index], chunk_state_list, index))
         else:
             buffers.append(generate_buffer_window(buffer_text, text_area, generate_remove_patch_with_style(chunk), "class:remove-chunk", check_boxes[index], chunk_state_list, index))
         index += 1
+        cur_path = chunk.context.path
     
     return buffers
 
 def generate_chunks_with_check_box(check_boxes, all_chunks):
     check_box_contents = [Box(body=check_box, style="class:check-box", width=CHECKBOXWIDTH) for check_box in check_boxes]
-    return [VSplit([check_box_contents[i], all_chunks[i]]) for i in range(len(all_chunks))]
+    component = []
+    index = 0
+    for chunk in all_chunks:
+        if isinstance(chunk, Label):
+            component.append(chunk)
+        else:
+            component.append(VSplit([check_box_contents[index], chunk]))
+            index += 1
+    
+    return component
 
 def generate_main_chunk_components(add_chunks, remove_chunks):
     diff_text = FormattedTextControl(focusable=False)
