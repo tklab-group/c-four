@@ -40,7 +40,7 @@ def generate_buffer_key_bindings(text_area, patch, check_box, chunk_state_list, 
     
     @kb.add("d")
     def _(event):
-        check_box.text = " [x]"
+        check_box.text = " [ ]"
         chunk_state_list[index] = ChunkState.PENDING
     
     @kb.add("p")

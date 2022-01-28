@@ -107,7 +107,6 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
     
     root_container = HSplit(
         [
-            Label(text="Press `Enter` to show diff, press 'a' to include the chunk to this chunk set, press 'd' to put on pending status,\npress 'p' to move the chunk to previous chunk set, and press 'n' to move the chunk to next chunk set."),
             VSplit(
                 [
                     HSplit(
