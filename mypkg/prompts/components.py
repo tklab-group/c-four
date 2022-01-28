@@ -198,7 +198,7 @@ def generate_add_patch_with_style(chunk):
                 added_count += 1
         
         if line_id in other_remove_chunk_line_ids:
-            patch.append(('class:default-line', str(line_id) + '|'))
+            patch.append(('class:other-remove-line', str(line_id) + '|'))
             patch.append(('class:other-remove-line', '-' + context_code.code + '\n'))
         else:
             patch.append(('class:default-line', str(line_id) + '| ' + context_code.code + '\n'))
@@ -258,10 +258,10 @@ def generate_remove_patch_with_style(chunk):
                 added_count += 1
                 
         if line_id in target_remove_chunk_line_ids:
-            patch.append(('class:default-line', str(line_id) + '|'))
+            patch.append(('class:target-remove-line', str(line_id) + '|'))
             patch.append(('class:target-remove-line', '-' + context_code.code + '\n'))
         elif line_id in other_remove_chunk_line_ids:
-            patch.append(('class:default-line', str(line_id) + '|'))
+            patch.append(('class:other-remove-line', str(line_id) + '|'))
             patch.append(('class:other-remove-line', '-' + context_code.code + '\n'))
         else:
             patch.append(('class:default-line', str(line_id) + '| ' + context_code.code + '\n'))
