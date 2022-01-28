@@ -8,8 +8,8 @@
 
 C-four(Clean Commit Co-Creator) is the useful console tool to co-create the clean commit with you.
 
-# Demo
-![c-four_demo](https://user-images.githubusercontent.com/49778469/149050873-9b41f7ea-cc43-4574-ba92-75b4f21c8036.gif)
+# Screenshot
+![Hyper 2022_01_28 21_47_52](https://user-images.githubusercontent.com/49778469/151554374-3b612d6f-dd83-4b85-8c00-9b5dc049e060.png)
 
 # Installation
 ```
