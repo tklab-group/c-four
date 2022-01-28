@@ -8,6 +8,7 @@ import click
 import configparser
 import subprocess
 from subprocess import PIPE
+import datetime
 
 @click.command()
 @click.option('--all', '-a', 'is_all', is_flag=True, help="Don't perform initial split")
@@ -35,11 +36,12 @@ def main(is_all, is_file, json_path, config):
         initial_split = make_file_unit_json(diffs)
         set_related_chunks_for_default_mode(initial_split)
 
-    with open('./json/sample.json', 'w') as f:
+    log_path = 'log/' + datetime.datetime.now().strftime('%Y%m%d_%H%M%S%f')
+    os.mkdir(log_path)
+    with open(log_path + '/input.json', 'w') as f:
         json.dump(initial_split, f, indent=4)
     construct_data_from_json(initial_split)
-    
-    run_prompt(repo)
+    run_prompt(repo, log_path)
     
 def config_mode(config):
     conf = configparser.ConfigParser()
