@@ -146,7 +146,6 @@ def construct_data_from_json(json):
             session.add(CodeInfo(code["line_id"], code["code"], context.id))
             session.commit()
     
-    add_chunk_map, remove_chunk_map = defaultdict(int), defaultdict(int)
     for cs in json["chunk_sets"]:
         chunk_set = ChunkSet()
         session.add(chunk_set)
@@ -156,7 +155,6 @@ def construct_data_from_json(json):
             add_chunk = AddChunk(ac["start_id"], ac["end_id"], ac["context_id"], chunk_set.id)
             session.add(add_chunk)
             session.commit()
-            add_chunk_map[ac["id"]] = add_chunk.id
             
             for acc in ac["codes"]:
                 session.add(AddChunkCode(acc, add_chunk.id))
@@ -166,21 +164,20 @@ def construct_data_from_json(json):
             remove_chunk = RemoveChunk(rc["start_id"], rc["end_id"], rc["context_id"], chunk_set.id)
             session.add(remove_chunk)
             session.commit()
-            remove_chunk_map[rc["id"]] = remove_chunk.id
             
     for cr in json["chunk_relation"]:
         if cr["first_chunk_type"] == "add":
-            first_chunk_id = add_chunk_map[cr["first_chunk_id"]]
+            first_chunk_id = cr["first_chunk_id"]
             first_chunk_type = ChunkType.ADD
         else:
-            first_chunk_id = remove_chunk_map[cr["first_chunk_id"]]
+            first_chunk_id = cr["first_chunk_id"]
             first_chunk_type = ChunkType.REMOVE
 
         if cr["second_chunk_type"] == "add":
-            second_chunk_id = add_chunk_map[cr["second_chunk_id"]]
+            second_chunk_id = cr["second_chunk_id"]
             second_chunk_type = ChunkType.ADD
         else:
-            second_chunk_id = remove_chunk_map[cr["second_chunk_id"]]
+            second_chunk_id = cr["second_chunk_id"]
             second_chunk_type = ChunkType.REMOVE
         
         session.add(ChunkRelation(first_chunk_id, first_chunk_type, second_chunk_id, second_chunk_type))
