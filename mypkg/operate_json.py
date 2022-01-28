@@ -191,13 +191,11 @@ def construct_json_from_data(log_path):
     for cs in ChunkSet.query.all():
         chunk_set = {"add_chunks": [], "remove_chunks": []}
         for ac in cs.add_chunks:
-            add_chunk = {"id": ac.id, "start_id": ac.start_id, "end_id": ac.end_id, "context_id": ac.context_id, "codes": []}
-            for code in ac.add_chunk_codes:
-                add_chunk["codes"].append(code.code)
-            chunk_set["add_chunks"].append(add_chunk)
+            chunk_set["add_chunks"].append({"id": ac.id, "start_id": ac.start_id, "end_id": ac.end_id, "context_id": ac.context_id})
         for rc in cs.remove_chunks:
             chunk_set["remove_chunks"].append({"id": rc.id, "start_id": rc.start_id, "end_id": rc.end_id, "context_id": rc.context_id})
-        data["chunk_sets"].append(chunk_set)
+        if chunk_set["add_chunks"] or chunk_set["remove_chunks"]:
+            data["chunk_sets"].append(chunk_set)
 
     fnum = 1
     fname = log_path + '/output_' + str(fnum) + '.json'
