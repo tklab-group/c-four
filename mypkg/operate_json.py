@@ -1,3 +1,5 @@
+import os.path
+
 from mypkg.models.context import Context
 from mypkg.models.add_chunk import AddChunk
 from mypkg.models.add_chunk_code import AddChunkCode
@@ -9,6 +11,7 @@ from mypkg.db_settings import session
 import re
 from collections import defaultdict
 import itertools
+import json
 from sqlalchemy import or_
 
 def convert_diff_to_chunks(diff, context, chunk_set, context_id, add_chunk_id, remove_chunk_id):
@@ -146,7 +149,6 @@ def construct_data_from_json(json):
             session.add(CodeInfo(code["line_id"], code["code"], context.id))
             session.commit()
     
-    add_chunk_map, remove_chunk_map = defaultdict(int), defaultdict(int)
     for cs in json["chunk_sets"]:
         chunk_set = ChunkSet()
         session.add(chunk_set)
@@ -156,7 +158,6 @@ def construct_data_from_json(json):
             add_chunk = AddChunk(ac["start_id"], ac["end_id"], ac["context_id"], chunk_set.id)
             session.add(add_chunk)
             session.commit()
-            add_chunk_map[ac["id"]] = add_chunk.id
             
             for acc in ac["codes"]:
                 session.add(AddChunkCode(acc, add_chunk.id))
@@ -166,25 +167,45 @@ def construct_data_from_json(json):
             remove_chunk = RemoveChunk(rc["start_id"], rc["end_id"], rc["context_id"], chunk_set.id)
             session.add(remove_chunk)
             session.commit()
-            remove_chunk_map[rc["id"]] = remove_chunk.id
             
     for cr in json["chunk_relation"]:
         if cr["first_chunk_type"] == "add":
-            first_chunk_id = add_chunk_map[cr["first_chunk_id"]]
+            first_chunk_id = cr["first_chunk_id"]
             first_chunk_type = ChunkType.ADD
         else:
-            first_chunk_id = remove_chunk_map[cr["first_chunk_id"]]
+            first_chunk_id = cr["first_chunk_id"]
             first_chunk_type = ChunkType.REMOVE
 
         if cr["second_chunk_type"] == "add":
-            second_chunk_id = add_chunk_map[cr["second_chunk_id"]]
+            second_chunk_id = cr["second_chunk_id"]
             second_chunk_type = ChunkType.ADD
         else:
-            second_chunk_id = remove_chunk_map[cr["second_chunk_id"]]
+            second_chunk_id = cr["second_chunk_id"]
             second_chunk_type = ChunkType.REMOVE
         
         session.add(ChunkRelation(first_chunk_id, first_chunk_type, second_chunk_id, second_chunk_type))
     session.commit()
+
+def construct_json_from_data(log_path):
+    data = {"chunk_sets": []}
+    for cs in ChunkSet.query.all():
+        chunk_set = {"add_chunks": [], "remove_chunks": []}
+        for ac in cs.add_chunks:
+            chunk_set["add_chunks"].append({"id": ac.id, "start_id": ac.start_id, "end_id": ac.end_id, "context_id": ac.context_id})
+        for rc in cs.remove_chunks:
+            chunk_set["remove_chunks"].append({"id": rc.id, "start_id": rc.start_id, "end_id": rc.end_id, "context_id": rc.context_id})
+        if chunk_set["add_chunks"] or chunk_set["remove_chunks"]:
+            data["chunk_sets"].append(chunk_set)
+
+    fnum = 1
+    fname = log_path + '/output_' + str(fnum) + '.json'
+    while os.path.isfile(fname):
+        fnum += 1
+        fname = log_path + '/output_' + str(fnum) + '.json'
+    
+    with open(fname, 'w') as f:
+        json.dump(data, f, indent=4)
+    return data
 
 def get_related_chunks(cur_chunk, cur_chunks):
     if isinstance(cur_chunk, AddChunk):
