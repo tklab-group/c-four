@@ -1,3 +1,5 @@
+import os.path
+
 from mypkg.models.context import Context
 from mypkg.models.add_chunk import AddChunk
 from mypkg.models.add_chunk_code import AddChunkCode
@@ -9,6 +11,7 @@ from mypkg.db_settings import session
 import re
 from collections import defaultdict
 import itertools
+import json
 from sqlalchemy import or_
 
 def convert_diff_to_chunks(diff, context, chunk_set, context_id, add_chunk_id, remove_chunk_id):
@@ -182,6 +185,29 @@ def construct_data_from_json(json):
         
         session.add(ChunkRelation(first_chunk_id, first_chunk_type, second_chunk_id, second_chunk_type))
     session.commit()
+
+def construct_json_from_data(log_path):
+    data = {"chunk_sets": []}
+    for cs in ChunkSet.query.all():
+        chunk_set = {"add_chunks": [], "remove_chunks": []}
+        for ac in cs.add_chunks:
+            add_chunk = {"id": ac.id, "start_id": ac.start_id, "end_id": ac.end_id, "context_id": ac.context_id, "codes": []}
+            for code in ac.add_chunk_codes:
+                add_chunk["codes"].append(code.code)
+            chunk_set["add_chunks"].append(add_chunk)
+        for rc in cs.remove_chunks:
+            chunk_set["remove_chunks"].append({"id": rc.id, "start_id": rc.start_id, "end_id": rc.end_id, "context_id": rc.context_id})
+        data["chunk_sets"].append(chunk_set)
+
+    fnum = 1
+    fname = log_path + '/output_' + str(fnum) + '.json'
+    while os.path.isfile(fname):
+        fnum += 1
+        fname = log_path + '/output_' + str(fnum) + '.json'
+    
+    with open(fname, 'w') as f:
+        json.dump(data, f, indent=4)
+    return data
 
 def get_related_chunks(cur_chunk, cur_chunks):
     if isinstance(cur_chunk, AddChunk):

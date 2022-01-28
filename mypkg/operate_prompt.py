@@ -4,9 +4,9 @@ from mypkg.models.remove_chunk import RemoveChunk
 from mypkg.models.chunk_set import ChunkSet
 from mypkg.prompts.main_prompt import generate_main_screen
 from prompt_toolkit.shortcuts import yes_no_dialog
-from mypkg.operate_json import get_related_chunks
+from mypkg.operate_json import get_related_chunks, construct_json_from_data
 
-def run_prompt(repo):
+def run_prompt(repo, log_path):
     while True:
         all_chunks = []
         all_add_chunks = AddChunk.query.all()
@@ -38,6 +38,7 @@ def run_prompt(repo):
             application = generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks)
             cur_chunk_set_idx = application.run()
         
+        construct_json_from_data(log_path)
         # stage and commit current chunk sets
         for chunk_set in chunk_sets:
             chunk_set.commit_self_chunks(repo)
