@@ -43,14 +43,14 @@ def generate_buffer_key_bindings(text_area, patch, check_box, chunk_state_list, 
         check_box.text = " [ ]"
         chunk_state_list[index] = ChunkState.PENDING
     
-    @kb.add("p")
+    @kb.add("left")
     def _(event):
-        check_box.text = " [p]"
+        check_box.text = " [<]"
         chunk_state_list[index] = ChunkState.PREV
     
-    @kb.add("n")
+    @kb.add("right")
     def _(event):
-        check_box.text = " [n]"
+        check_box.text = " [>]"
         chunk_state_list[index] = ChunkState.NEXT
     
     return kb

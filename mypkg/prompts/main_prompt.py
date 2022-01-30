@@ -181,12 +181,12 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
         if all_related_chunks:
             event.app.layout.focus(all_related_chunks[0])
 
-    @gen_kb.add("s-left")
+    @gen_kb.add("c-p")
     def _(event):
         if is_not_first:
             event.app.layout.focus(prev_chunk_button)
 
-    @gen_kb.add("s-right")
+    @gen_kb.add("c-n")
     def _(event):
         event.app.layout.focus(next_chunk_button)
 
@@ -204,17 +204,17 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
         for i in range(len(chunk_state_list)):
             chunk_state_list[i] = ChunkState.PENDING
 
-    @gen_kb.add("c-p")
+    @gen_kb.add("s-left")
     def _(event):
         for check_box in check_boxes:
-            check_box.text = " [p]"
+            check_box.text = " [<]"
         for i in range(len(chunk_state_list)):
             chunk_state_list[i] = ChunkState.PREV
 
-    @gen_kb.add("c-n")
+    @gen_kb.add("s-right")
     def _(event):
         for check_box in check_boxes:
-            check_box.text = " [n]"
+            check_box.text = " [>]"
         for i in range(len(chunk_state_list)):
             chunk_state_list[i] = ChunkState.NEXT
 
