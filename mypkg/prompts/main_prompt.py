@@ -90,17 +90,17 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
         
     if is_not_first:
         prev_chunk_button_style = "class:prev-chunk-button-normal"
-        prev_button_label = "Prev Chunks"
+        prev_button_label = "Prev Commit"
     else:
         prev_chunk_button_style = "class:prev-chunk-button-first"
-        prev_button_label = "Prev Chunks(This is the first chunks)"
+        prev_button_label = ""
 
     if is_not_last:
         next_chunk_button_style = "class:next-chunk-button-normal"
-        next_button_label = "Next Chunks"
+        next_button_label = "Next Commit"
     else:
         next_chunk_button_style = "class:next-chunk-button-last"
-        next_button_label = "Finish Split(This is the last chunks)"
+        next_button_label = "Make commits!"
     
     prev_chunk_button = generate_move_button(prev_button_label, is_not_first, prev_chunk_kb, prev_chunk_button_style)
     next_chunk_button = generate_move_button(next_button_label, True, next_chunk_kb, next_chunk_button_style)
@@ -111,7 +111,7 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
                 [
                     HSplit(
                         [
-                            generate_screen_title_label("Suggested Chunk Sets({} chunks) (Page: {} / {})".format(len(add_chunks) + len(remove_chunks), cur_chunk_set_idx + 1, len(chunk_sets)), "class:page-num"),
+                            generate_screen_title_label("Commit({} chunks) (Page: {} / {})".format(len(add_chunks) + len(remove_chunks), cur_chunk_set_idx + 1, len(chunk_sets)), "class:page-num"),
                             generate_chunk_with_diff_screen(chunk_with_check_boxes),
                             generate_screen_title_label("Related and Pending Chunks({} chunks)".format(len(related_chunks)), "class:related-label"),
                             generate_chunk_with_diff_screen(related_with_check_boxes),
