@@ -2,7 +2,7 @@ from mypkg.db_settings import Base, engine, session
 from mypkg.models.add_chunk import AddChunk
 from mypkg.models.remove_chunk import RemoveChunk
 from mypkg.models.chunk_set import ChunkSet
-from mypkg.prompts.main_prompt import generate_main_screen
+from mypkg.prompts.main_prompt import generate_main_screen, ExitState
 from prompt_toolkit.shortcuts import yes_no_dialog
 from mypkg.operate_json import get_related_chunks, construct_json_from_data
 
@@ -16,12 +16,10 @@ def run_prompt(repo, log_path):
         
         # split_chunks_by_file(all_chunks)
         chunk_sets = ChunkSet.query.all()
-        
         cur_chunk_set_idx = 0
-        chunk_sets_size = len(chunk_sets)
         
         #Start and run application
-        while cur_chunk_set_idx < chunk_sets_size:
+        while cur_chunk_set_idx < ChunkSet.query.count():
             cur_chunks = []
             cur_chunk_set = chunk_sets[cur_chunk_set_idx]
             cur_chunks.extend(cur_chunk_set.add_chunks)
@@ -36,7 +34,12 @@ def run_prompt(repo, log_path):
             related_chunks = list(set(related_chunks))
             
             application = generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks)
-            cur_chunk_set_idx = application.run()
+            cur_chunk_set_idx, exit_state = application.run()
+            if exit_state == ExitState.APPEND:
+                new_chunk_set = ChunkSet()
+                session.add(new_chunk_set)
+                session.commit()
+                chunk_sets.append(new_chunk_set)
         
         construct_json_from_data(log_path)
         # stage and commit current chunk sets
