@@ -140,7 +140,6 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
             ("remove-chunk", "bg:#880000 #ffffff"),
             ("chunk-sets", "bg:#454545 #ffffff"),
             ("check-box", "bg:#151515 #ffffff"),
-            ("diff", "bg:#000000 #006600"),
             ("prev-chunk-button-first", "bg:#b22222 #454545"),
             ("prev-chunk-button-normal", "bg:#b22222 #ffffff"),
             ("next-chunk-button-last", "bg:#00bfff #ffff00 bold"),

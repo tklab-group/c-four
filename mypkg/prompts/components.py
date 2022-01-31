@@ -139,7 +139,6 @@ def generate_chunk_with_diff_screen(chunk_with_check_boxes):
 def generate_diff_screen(diff_area):
     screen = HSplit(
         [
-            Label(text="Diff", style="class:diff"),
             Box(
                 body=Frame(diff_area),
                 padding=0,
