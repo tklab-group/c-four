@@ -89,11 +89,10 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
         event.app.exit(result=cur_chunk_set_idx + 1)
         
     if is_not_first:
-        prev_chunk_button_style = "class:prev-chunk-button-normal"
+        prev_chunk_button_style = "class:prev-chunk-button"
         prev_button_label = "Prev Commit"
     else:
-        prev_chunk_button_style = "class:prev-chunk-button-first"
-        prev_button_label = ""
+        prev_chunk_button_style = prev_button_label = ""
 
     if is_not_last:
         next_chunk_button_style = "class:next-chunk-button-normal"
@@ -140,9 +139,8 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
             ("remove-chunk", "bg:#880000 #ffffff"),
             ("chunk-sets", "bg:#454545 #ffffff"),
             ("check-box", "bg:#151515 #ffffff"),
-            ("prev-chunk-button-first", "bg:#b22222 #454545"),
-            ("prev-chunk-button-normal", "bg:#b22222 #ffffff"),
-            ("next-chunk-button-last", "bg:#00bfff #ffff00 bold"),
+            ("prev-chunk-button", "bg:#b22222 #ffffff"),
+            ("next-chunk-button-last", "bg:#ffff00 #000000 bold"),
             ("next-chunk-button-normal", "bg:#00bfff #ffffff"),
             ("page-num", "bg:#ffbf7f #000000"),
             ("related-label", "bg:#6395ed #000000"),
