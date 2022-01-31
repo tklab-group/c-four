@@ -42,6 +42,7 @@ def run_prompt(repo, log_path):
                 chunk_sets.append(new_chunk_set)
             elif exit_state == ExitState.REMOVE:
                 chunk_sets.pop(cur_chunk_set_idx)
+                ChunkSet.query.filter(ChunkSet.id == cur_chunk_set.id).delete()
                 if cur_chunk_set_idx == len(chunk_sets):
                     cur_chunk_set_idx -= 1
         
