@@ -39,7 +39,7 @@ def run_prompt(repo, log_path):
                 new_chunk_set = ChunkSet()
                 session.add(new_chunk_set)
                 session.commit()
-                chunk_sets.append(new_chunk_set)
+                chunk_sets.insert(cur_chunk_set_idx + 1, new_chunk_set)
             elif exit_state == ExitState.REMOVE:
                 chunk_sets.pop(cur_chunk_set_idx)
                 ChunkSet.query.filter(ChunkSet.id == cur_chunk_set.id).delete()
