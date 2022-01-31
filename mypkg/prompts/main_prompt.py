@@ -1,7 +1,7 @@
 # hello
 from mypkg.db_settings import session
 from prompt_toolkit.application import Application
-from prompt_toolkit.layout import HSplit, VSplit, Layout
+from prompt_toolkit.layout import HSplit, VSplit, Layout, DummyControl, Window
 from prompt_toolkit.widgets import Label, TextArea, Frame
 from prompt_toolkit.styles import Style
 from prompt_toolkit.key_binding import KeyBindings
@@ -108,9 +108,18 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
         [
             VSplit(
                 [
+                    Window(DummyControl()),
+                    Window(DummyControl()),
+                    Label(text="Commit Number: {} / {}".format(cur_chunk_set_idx + 1, len(chunk_sets)), style="class:page-label"),
+                    Window(DummyControl()),
+                    Window(DummyControl())
+                ]
+            ),
+            VSplit(
+                [
                     HSplit(
                         [
-                            generate_screen_title_label("Commit({} chunks) (Page: {} / {})".format(len(add_chunks) + len(remove_chunks), cur_chunk_set_idx + 1, len(chunk_sets)), "class:page-num"),
+                            generate_screen_title_label("Commit({} chunks)".format(len(add_chunks) + len(remove_chunks)), "class:page-num"),
                             generate_chunk_with_diff_screen(chunk_with_check_boxes),
                             generate_screen_title_label("Related and Pending Chunks({} chunks)".format(len(related_chunks)), "class:related-label"),
                             generate_chunk_with_diff_screen(related_with_check_boxes),
@@ -152,6 +161,7 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
             ("label-back", "bg:#C4C4C4 #ffffff"),
             ("patch-label", "bg:#454545 #ffffff"),
             ("path-label", "bg:#E8C56D #000000"),
+            ("page-label", "bg:#ffffff #000000")
         ]
     )
     
