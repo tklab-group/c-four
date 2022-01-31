@@ -73,7 +73,7 @@ def generate_buffer_window(buffer_text, text_area, patch, style, check_box, chun
     return window
 
 def generate_path_label(path):
-    return Label(text="Path: {}".format(path), style="class:path-label")
+    return Label(text=path, style="class:path-label")
 
 def generate_chunk_buffers(add_chunks, remove_chunks, text_area, check_boxes, chunk_state_list):
     buffers = []
