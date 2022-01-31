@@ -12,6 +12,7 @@ from enum import Enum, auto
 class ExitState(Enum):
     NORMAL = auto()
     APPEND = auto()
+    REMOVE = auto()
 
 def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
     #main chunks components
@@ -80,6 +81,15 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
     def common_exit_process():
         commit_staged_chunks()
         assign_selected_chunks(related_chunks, related_state_list)
+        
+    def remove_exit_process():
+        cur_chunks = []
+        cur_chunks.extend(add_chunks)
+        cur_chunks.extend(remove_chunks)
+    
+        for cur_chunk in cur_chunks:
+            cur_chunk.chunk_set_id = None
+        session.commit()
 
     prev_chunk_kb, next_chunk_kb = KeyBindings(), KeyBindings()
 
@@ -182,6 +192,11 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
     @gen_kb.add("c-v")
     def _(event):
         event.app.exit(result=(cur_chunk_set_idx, ExitState.APPEND))
+        
+    @gen_kb.add("c-s")
+    def _(event):
+        remove_exit_process()
+        event.app.exit(result=(cur_chunk_set_idx, ExitState.REMOVE))
 
     @gen_kb.add("c-t")
     def _(event):

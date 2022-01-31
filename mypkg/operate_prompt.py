@@ -19,7 +19,7 @@ def run_prompt(repo, log_path):
         cur_chunk_set_idx = 0
         
         #Start and run application
-        while cur_chunk_set_idx < ChunkSet.query.count():
+        while cur_chunk_set_idx < len(chunk_sets):
             cur_chunks = []
             cur_chunk_set = chunk_sets[cur_chunk_set_idx]
             cur_chunks.extend(cur_chunk_set.add_chunks)
@@ -40,6 +40,10 @@ def run_prompt(repo, log_path):
                 session.add(new_chunk_set)
                 session.commit()
                 chunk_sets.append(new_chunk_set)
+            elif exit_state == ExitState.REMOVE:
+                chunk_sets.pop(cur_chunk_set_idx)
+                if cur_chunk_set_idx == len(chunk_sets):
+                    cur_chunk_set_idx -= 1
         
         construct_json_from_data(log_path)
         # stage and commit current chunk sets
