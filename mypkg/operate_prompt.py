@@ -7,17 +7,15 @@ from prompt_toolkit.shortcuts import yes_no_dialog
 from mypkg.operate_json import get_related_chunks, construct_json_from_data
 
 def run_prompt(repo, log_path):
+    all_chunks = []
+    all_add_chunks = AddChunk.query.all()
+    all_remove_chunks = RemoveChunk.query.all()
+    all_chunks.extend(all_add_chunks)
+    all_chunks.extend(all_remove_chunks)
+
+    chunk_sets = ChunkSet.query.all()
+    cur_chunk_set_idx = 0
     while True:
-        all_chunks = []
-        all_add_chunks = AddChunk.query.all()
-        all_remove_chunks = RemoveChunk.query.all()
-        all_chunks.extend(all_add_chunks)
-        all_chunks.extend(all_remove_chunks)
-        
-        # split_chunks_by_file(all_chunks)
-        chunk_sets = ChunkSet.query.all()
-        cur_chunk_set_idx = 0
-        
         #Start and run application
         while cur_chunk_set_idx < len(chunk_sets):
             cur_chunks = []
