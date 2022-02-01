@@ -134,7 +134,7 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
                 [
                     HSplit(
                         [
-                            generate_screen_title_label("Commit({} chunks)".format(len(add_chunks) + len(remove_chunks)), "class:page-num"),
+                            generate_screen_title_label("Current commit({} chunks)".format(len(add_chunks) + len(remove_chunks)), "class:page-num"),
                             generate_chunk_with_diff_screen(chunk_with_check_boxes),
                             generate_screen_title_label("Related and Pending Chunks({} chunks)".format(len(related_chunks)), "class:related-label"),
                             generate_chunk_with_diff_screen(related_with_check_boxes),
