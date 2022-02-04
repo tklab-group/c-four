@@ -7,6 +7,12 @@ from prompt_toolkit.styles import Style
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.key_binding.bindings.focus import focus_next, focus_previous
 from mypkg.prompts.components import generate_main_chunk_components, generate_screen_title_label, generate_chunk_with_diff_screen, generate_move_button, generate_other_chunk_components, ChunkState, generate_diff_screen
+from enum import Enum, auto
+
+class ExitState(Enum):
+    NORMAL = auto()
+    APPEND = auto()
+    REMOVE = auto()
 
 def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
     #main chunks components
@@ -75,18 +81,27 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
     def common_exit_process():
         commit_staged_chunks()
         assign_selected_chunks(related_chunks, related_state_list)
+        
+    def remove_exit_process():
+        cur_chunks = []
+        cur_chunks.extend(add_chunks)
+        cur_chunks.extend(remove_chunks)
+    
+        for cur_chunk in cur_chunks:
+            cur_chunk.chunk_set_id = None
+        session.commit()
 
     prev_chunk_kb, next_chunk_kb = KeyBindings(), KeyBindings()
 
     @prev_chunk_kb.add("c-m")
     def _(event):
         common_exit_process()
-        event.app.exit(result=cur_chunk_set_idx - 1)
+        event.app.exit(result=(cur_chunk_set_idx - 1, ExitState.NORMAL))
 
     @next_chunk_kb.add("c-m")
     def _(event):
         common_exit_process()
-        event.app.exit(result=cur_chunk_set_idx + 1)
+        event.app.exit(result=(cur_chunk_set_idx + 1, ExitState.NORMAL))
         
     if is_not_first:
         prev_chunk_button_style = "class:prev-chunk-button"
@@ -119,7 +134,7 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
                 [
                     HSplit(
                         [
-                            generate_screen_title_label("Commit({} chunks)".format(len(add_chunks) + len(remove_chunks)), "class:page-num"),
+                            generate_screen_title_label("Current commit({} chunks)".format(len(add_chunks) + len(remove_chunks)), "class:page-num"),
                             generate_chunk_with_diff_screen(chunk_with_check_boxes),
                             generate_screen_title_label("Related and Pending Chunks({} chunks)".format(len(related_chunks)), "class:related-label"),
                             generate_chunk_with_diff_screen(related_with_check_boxes),
@@ -173,6 +188,15 @@ def generate_main_screen(chunk_sets, cur_chunk_set_idx, related_chunks):
     @gen_kb.add("c-q")
     def _(event):
         event.app.exit()
+
+    @gen_kb.add("c-v")
+    def _(event):
+        event.app.exit(result=(cur_chunk_set_idx, ExitState.APPEND))
+        
+    @gen_kb.add("c-s")
+    def _(event):
+        remove_exit_process()
+        event.app.exit(result=(cur_chunk_set_idx, ExitState.REMOVE))
 
     @gen_kb.add("c-t")
     def _(event):
