@@ -55,7 +55,7 @@ def run_prompt(repo, log_path):
                 cur_chunk_set_idx -= 1
                 continue
         
-        construct_json_from_data(log_path)
+        # construct_json_from_data(log_path)
         # stage and commit current chunk sets
         for chunk_set in chunk_sets:
             chunk_set.commit_self_chunks(repo)

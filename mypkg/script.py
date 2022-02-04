@@ -37,9 +37,9 @@ def main(is_all, is_file, json_path, config):
         set_related_chunks_for_default_mode(initial_split)
 
     log_path = 'log/' + datetime.datetime.now().strftime('%Y%m%d_%H%M%S%f')
-    os.mkdir(log_path)
-    with open(log_path + '/input.json', 'w') as f:
-        json.dump(initial_split, f, indent=4)
+    # os.mkdir(log_path)
+    # with open(log_path + '/input.json', 'w') as f:
+    #     json.dump(initial_split, f, indent=4)
     construct_data_from_json(initial_split)
     run_prompt(repo, log_path)
     
