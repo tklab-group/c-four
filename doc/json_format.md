@@ -20,7 +20,7 @@ First, here is an example of the correct json.
       ]
     }
   ],
-  "chunk_relation": [
+  "chunk_relations": [
     {
       "first_chunk_id": 1,
       "first_chunk_type": "add",
@@ -69,7 +69,7 @@ First, here is an example of the correct json.
 }
 ```
 
-This json consists of three major instances of `"contexts"`, `"chunk_relation"`, and `"chunk_sets"`.
+This json consists of three major instances of `"contexts"`, `"chunk_relations"`, and `"chunk_sets"`.
 We will Explain each of them.
 
 ## contexts
@@ -90,7 +90,7 @@ The content of `"code_infos"` is as follows.
 | `"code"` | int | content of code |
 | `"line_id"` | string | line number of code |
 
-## chunk_relation
+## chunk_relations
 This is the array instance that contains information about the relationship between chunks.
 Describes the combination of two related chunks (Since it is a combination, the order of first and second is irrelevant.)
 

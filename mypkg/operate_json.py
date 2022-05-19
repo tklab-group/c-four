@@ -49,7 +49,7 @@ def convert_diff_to_chunks(diff, context, chunk_set, context_id, add_chunk_id, r
     return add_chunk_id, remove_chunk_id
 
 def make_single_unit_json(diffs):
-    data = {"contexts": [], "chunk_sets": [], "chunk_relation": []}
+    data = {"contexts": [], "chunk_sets": [], "chunk_relations": []}
     chunk_set = {"add_chunks": [], "remove_chunks": []}
     context_id = add_chunk_id = remove_chunk_id = 1
     
@@ -64,7 +64,7 @@ def make_single_unit_json(diffs):
     return data
 
 def make_file_unit_json(diffs):
-    data = {"contexts": [], "chunk_sets": [], "chunk_relation": []}
+    data = {"contexts": [], "chunk_sets": [], "chunk_relations": []}
     context_id = add_chunk_id = remove_chunk_id = 1
     
     for diff in diffs:
@@ -133,7 +133,7 @@ def set_related_chunks_for_default_mode(json):
 
     for chunk_sets in context_chunk_dict.values():
         for chunk_pairs in itertools.combinations(chunk_sets, 2):
-            json["chunk_relation"].append({
+            json["chunk_relations"].append({
                 "first_chunk_id": chunk_pairs[0]["id"],
                 "first_chunk_type": chunk_pairs[0]["type"],
                 "second_chunk_id": chunk_pairs[1]["id"],
@@ -168,7 +168,7 @@ def construct_data_from_json(json):
             session.add(remove_chunk)
             session.commit()
             
-    for cr in json["chunk_relation"]:
+    for cr in json["chunk_relations"]:
         if cr["first_chunk_type"] == "add":
             first_chunk_id = cr["first_chunk_id"]
             first_chunk_type = ChunkType.ADD
