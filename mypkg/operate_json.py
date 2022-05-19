@@ -14,7 +14,37 @@ import itertools
 import json
 from sqlalchemy import or_
 
-def convert_diff_to_chunks(diff, context, chunk_set, context_id, add_chunk_id, remove_chunk_id):
+def make_single_unit_json(diffs):
+    data = {"contexts": [], "chunk_sets": [], "chunk_relations": []}
+    chunk_set = {"add_chunks": [], "remove_chunks": []}
+    context_id = add_chunk_id = remove_chunk_id = 1
+    
+    for diff in diffs:
+        context = {"id": context_id, "path": diff.a_path, "code_infos": []}
+        add_chunk_id, remove_chunk_id = _convert_diff_to_chunks(diff, context, chunk_set, context_id, add_chunk_id, remove_chunk_id)
+        
+        data["contexts"].append(context)
+        context_id += 1
+
+    data["chunk_sets"].append(chunk_set)
+    return data
+
+def make_file_unit_json(diffs):
+    data = {"contexts": [], "chunk_sets": [], "chunk_relations": []}
+    context_id = add_chunk_id = remove_chunk_id = 1
+    
+    for diff in diffs:
+        chunk_set = {"add_chunks": [], "remove_chunks": []}
+        context = {"id": context_id, "path": diff.a_path, "code_infos": []}
+        add_chunk_id, remove_chunk_id = _convert_diff_to_chunks(diff, context, chunk_set, context_id, add_chunk_id, remove_chunk_id)
+        
+        data["contexts"].append(context)
+        data["chunk_sets"].append(chunk_set)
+        context_id += 1
+
+    return data
+
+def _convert_diff_to_chunks(diff, context, chunk_set, context_id, add_chunk_id, remove_chunk_id):
     diff = diff.diff.decode().split('\n')
     diff.pop()
     add_line_infos, remove_line_ids = [], []
@@ -47,36 +77,6 @@ def convert_diff_to_chunks(diff, context, chunk_set, context_id, add_chunk_id, r
         remove_chunk_id = convert_lines_to_remove_chunk(remove_line_ids, context_id, chunk_set["remove_chunks"], remove_chunk_id)
     
     return add_chunk_id, remove_chunk_id
-
-def make_single_unit_json(diffs):
-    data = {"contexts": [], "chunk_sets": [], "chunk_relations": []}
-    chunk_set = {"add_chunks": [], "remove_chunks": []}
-    context_id = add_chunk_id = remove_chunk_id = 1
-    
-    for diff in diffs:
-        context = {"id": context_id, "path": diff.a_path, "code_infos": []}
-        add_chunk_id, remove_chunk_id = convert_diff_to_chunks(diff, context, chunk_set, context_id, add_chunk_id, remove_chunk_id)
-        
-        data["contexts"].append(context)
-        context_id += 1
-
-    data["chunk_sets"].append(chunk_set)
-    return data
-
-def make_file_unit_json(diffs):
-    data = {"contexts": [], "chunk_sets": [], "chunk_relations": []}
-    context_id = add_chunk_id = remove_chunk_id = 1
-    
-    for diff in diffs:
-        chunk_set = {"add_chunks": [], "remove_chunks": []}
-        context = {"id": context_id, "path": diff.a_path, "code_infos": []}
-        add_chunk_id, remove_chunk_id = convert_diff_to_chunks(diff, context, chunk_set, context_id, add_chunk_id, remove_chunk_id)
-        
-        data["contexts"].append(context)
-        data["chunk_sets"].append(chunk_set)
-        context_id += 1
-
-    return data
 
 def convert_lines_to_add_chunk(infos, context_id, add_chunks, add_chunk_id):
     first_info = infos.pop(0)
