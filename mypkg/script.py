@@ -9,6 +9,7 @@ import configparser
 import subprocess
 from subprocess import PIPE
 import datetime
+import pprint
 
 @click.command()
 @click.option('--all', '-a', 'is_all', is_flag=True, help="Don't perform initial split")
@@ -29,14 +30,14 @@ def main(is_all, is_file, json_path, config):
         set_related_chunks_for_default_mode(initial_split)
     elif json_path:
         with open(json_path, 'r') as f:
-            initial_split = json.load(f)
+            initial_split = convert_external_json_to_internal(json.load(f), diffs)
     elif config:
         initial_split = convert_external_json_to_internal(_load_json_from_config(config), diffs)
     else:
         initial_split = make_file_unit_json(diffs)
         set_related_chunks_for_default_mode(initial_split)
 
-    log_path = 'log/' + datetime.datetime.now().strftime('%Y%m%d_%H%M%S%f')
+    log_path = './log/' + datetime.datetime.now().strftime('%Y%m%d_%H%M%S%f')
     # os.mkdir(log_path)
     # with open(log_path + '/input.json', 'w') as f:
     #     json.dump(initial_split, f, indent=4)

@@ -184,19 +184,24 @@ def convert_external_json_to_internal(initial_json, diffs):
     return data
 
 def _import_initial_json_info(initial_json, data):
-    add_chunks, remove_chunks = data["chunk_set"]["add_chunks"]
+    add_chunks, remove_chunks = {}, {}
     chunk_sets = []
     
+    for cs in data["chunk_sets"]:
+        add_chunks.update(cs["add_chunks"])
+        remove_chunks.update(cs["remove_chunks"])
+    
     for cs in initial_json["chunk_sets"]:
-        chunk_set = {"add_chunks": [], "remove_chunks": []}
+        chunk_set = {"add_chunks": {}, "remove_chunks": {}}
         for chunk in cs:
             if chunk["chunk_type"] == "add":
-                chunk_set["add_chunks"].append(add_chunks[chunk["chunk_id"]])
+                chunk_set["add_chunks"][chunk["chunk_id"]] = add_chunks[chunk["chunk_id"]]
             elif chunk["chunk_type"] == "remove":
-                chunk_set["remove_chunks"].append(add_chunks[chunk["chunk_id"]])
+                chunk_set["remove_chunks"][chunk["chunk_id"]] = remove_chunks[chunk["chunk_id"]]
             else:
                 print('Given json is invalid')
                 return None
+        chunk_sets.append(chunk_set)
     
     data["chunk_sets"] = chunk_sets
     data["chunk_relations"] = initial_json["chunk_relations"]
