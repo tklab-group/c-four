@@ -47,9 +47,16 @@ def config_mode(config):
     conf = configparser.ConfigParser()
     conf.read(os.environ['C_FOUR_CONFIG_PATH'])
     section = conf[config]
+    cwd = os.getcwd()
+    path = section['path']
+    os.chdir(path)
     cmd = section['cmd'].split()
+    cmd.append(cwd)
     proc = subprocess.run(cmd, shell=False, stdout=PIPE, stderr=PIPE, text=True)
-    jl = json.loads(proc.stdout)
+    stdout = proc.stdout
+    index = stdout.find('output_for_c-four')
+    index += len('output_for_c-four')
+    jl = json.loads(stdout[index:])
     return jl
     
 if __name__ == '__main__':
