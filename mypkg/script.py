@@ -1,7 +1,7 @@
 from mypkg import operate_git
 import os
 from mypkg.db_settings import Base, engine
-from mypkg.operate_json import make_single_unit_json, make_file_unit_json, construct_data_from_json, set_related_chunks_for_default_mode, get_related_chunks
+from mypkg.operate_json import make_single_unit_json, make_file_unit_json, construct_data_from_json, set_related_chunks_for_default_mode, get_related_chunks, convert_external_json_to_internal
 from mypkg.operate_prompt import run_prompt
 import json
 import click
@@ -31,7 +31,7 @@ def main(is_all, is_file, json_path, config):
         with open(json_path, 'r') as f:
             initial_split = json.load(f)
     elif config:
-        initial_split = config_mode(config)
+        initial_split = convert_external_json_to_internal(_load_json_from_config(config), diffs)
     else:
         initial_split = make_file_unit_json(diffs)
         set_related_chunks_for_default_mode(initial_split)
@@ -43,7 +43,7 @@ def main(is_all, is_file, json_path, config):
     construct_data_from_json(initial_split)
     run_prompt(repo, log_path)
     
-def config_mode(config):
+def _load_json_from_config(config):
     conf = configparser.ConfigParser()
     conf.read(os.environ['C_FOUR_CONFIG_PATH'])
     section = conf[config]
